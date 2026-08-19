@@ -1,0 +1,72 @@
+name: Publish to SkillHub
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skillhub-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: skillhub-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate tag and Skill
+        shell: bash
+        run: |
+          python tools/validate_skill.py --expected-version "${GITHUB_REF_NAME}"
+          python -m unittest discover -s tests -v
+
+      - name: Install SkillHub CLI
+        shell: bash
+        run: |
+          curl --fail --show-error --silent --location \
+            https://skillhub.cn/install/install.sh \
+            --output /tmp/install-skillhub.sh
+          bash /tmp/install-skillhub.sh --cli-only
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
+      - name: SkillHub dry run
+        run: skillhub publish skills/yinchaoyongxian-music --dry-run --json
+
+      - name: Publish SkillHub release
+        env:
+          SKILLHUB_TOKEN: ${{ secrets.SKILLHUB_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "${SKILLHUB_TOKEN}" ]]; then
+            echo "Missing GitHub Actions secret: SKILLHUB_TOKEN" >&2
+            exit 1
+          fi
+          skillhub publish skills/yinchaoyongxian-music \
+            --token "${SKILLHUB_TOKEN}" \
+            --host https://api.skillhub.cn \
+            --changelog "GitHub Release ${GITHUB_REF_NAME}" \
+            --json
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 || \
+            gh release create "${GITHUB_REF_NAME}" \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes
