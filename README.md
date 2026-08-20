@@ -9,7 +9,7 @@
 
 YinChao is an AI music generation skill for text-to-music, AI song generation, lyrics-to-song, songwriting, vocal music, reference audio creation, and song extension. It generates playable music instead of stopping at lyrics.
 
-[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
+[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
 ## 环境要求
 
