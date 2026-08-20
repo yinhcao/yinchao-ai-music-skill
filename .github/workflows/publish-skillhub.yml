@@ -52,9 +52,21 @@ jobs:
             --no-self-upgrade
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
+      - name: Stage SkillHub files
+        shell: bash
+        run: |
+          skillhub_skill_dir="${RUNNER_TEMP}/yinchao-ai-music"
+          mkdir -p "${skillhub_skill_dir}"
+          cp skills/yinchao-ai-music/SKILL.md "${skillhub_skill_dir}/"
+          cp -R \
+            skills/yinchao-ai-music/references \
+            skills/yinchao-ai-music/scripts \
+            "${skillhub_skill_dir}/"
+          echo "SKILLHUB_SKILL_DIR=${skillhub_skill_dir}" >> "${GITHUB_ENV}"
+
       - name: SkillHub dry run
         shell: bash
-        run: skillhub publish skills/yinchao-ai-music --dry-run --json
+        run: skillhub publish "${SKILLHUB_SKILL_DIR}" --dry-run --json
 
       - name: Publish SkillHub release
         env:
@@ -65,7 +77,7 @@ jobs:
             echo "Missing GitHub Actions secret: SKILLHUB_TOKEN" >&2
             exit 1
           fi
-          skillhub publish skills/yinchao-ai-music \
+          skillhub publish "${SKILLHUB_SKILL_DIR}" \
             --token "${SKILLHUB_TOKEN}" \
             --host https://api.skillhub.cn \
             --changelog "GitHub Release ${GITHUB_REF_NAME}" \

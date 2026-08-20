@@ -1,6 +1,6 @@
 # YinChao AI Music Generator｜音潮涌现 AI 音乐生成器
 
-[![Release status](https://img.shields.io/badge/status-v1.3.0%20pre--release-orange)](#发布状态)
+[![Release status](https://img.shields.io/badge/status-v1.3.1%20pre--release-orange)](#发布状态)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)为 Codex、Claude Code 和其他 Agent 提供可播放的完整 AI 歌曲与 BGM：文字生成歌曲、歌词谱曲演唱、参考音频风格创作、歌曲续写与延长，以及纯歌词创作。
@@ -9,7 +9,7 @@ YinChao is an AI music generation skill for text-to-music, AI song generation, l
 
 ## 发布状态
 
-> `yinchao-ai-music@1.3.0` 当前处于发布准备阶段，正在从旧名称 `yinchaoyongxian-music` 迁移。公开 GitHub 仓库、新版 SkillHub 页面和 skills.sh 详情页上线前，请使用下面的本地安装方式；旧名称下的公开版本不代表本仓库当前代码。
+> `yinchao-ai-music@1.3.1` 当前处于发布准备阶段，正在从旧名称 `yinchaoyongxian-music` 迁移。新版 SkillHub 页面和 skills.sh 详情页上线前，请使用下面的 GitHub 安装方式；旧名称下的公开版本不代表本仓库当前代码。
 
 ## 环境要求
 
@@ -96,8 +96,21 @@ npx skills add . --list
 
 运行 SkillHub 本地预检：
 
+SkillHub 发布包只保留运行所需的文本、参考文档和脚本；Codex 专用 UI 元数据与 PNG 图标仍保留在 GitHub 源码中。
+
 ```bash
-skillhub publish skills/yinchao-ai-music --dry-run --json
+skillhub_stage_root="$(mktemp -d)"
+mkdir -p "${skillhub_stage_root}/yinchao-ai-music"
+cp skills/yinchao-ai-music/SKILL.md \
+  "${skillhub_stage_root}/yinchao-ai-music/"
+cp -R \
+  skills/yinchao-ai-music/references \
+  skills/yinchao-ai-music/scripts \
+  "${skillhub_stage_root}/yinchao-ai-music/"
+skillhub publish \
+  "${skillhub_stage_root}/yinchao-ai-music" \
+  --dry-run \
+  --json
 ```
 
 本地调用：
@@ -136,13 +149,13 @@ npx skills find "歌词谱曲"
 1. 创建并绑定公开 GitHub 仓库，确认 README 中的仓库地址能够访问。
 2. 更新 `SKILL.md` 的 `metadata.version` 与 `.codex-plugin/plugin.json` 中的同一个语义化版本号。
 3. 运行离线校验、单元测试和 SkillHub `--dry-run`。
-4. 合并到 `main` 后创建相同版本的 Git Tag，例如 `v1.3.0`。
+4. 合并到 `main` 后创建相同版本的 Git Tag，例如 `v1.3.1`。
 5. 推送 Tag；GitHub Actions 会测试、发布到 SkillHub，并创建 GitHub Release。
 6. 确认 GitHub、SkillHub 与 skills.sh 新页面可访问后，移除顶部的 pre-release 状态，恢复 CI、SkillHub 和 skills.sh 徽章，并更新为各平台的直接详情页。
 
 ```bash
-git tag -a v1.3.0 -m "v1.3.0"
-git push origin v1.3.0
+git tag -a v1.3.1 -m "v1.3.1"
+git push origin v1.3.1
 ```
 
 自动发布前，需要在 GitHub Actions secrets 中配置 `SKILLHUB_TOKEN`。不要将 Token 写入工作流文件。
