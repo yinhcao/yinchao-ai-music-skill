@@ -1,0 +1,100 @@
+name: Publish to ClawHub
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clawhub-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate tag and Skill
+        shell: bash
+        run: |
+          python tools/validate_skill.py --expected-version "${GITHUB_REF_NAME}"
+          python -m unittest discover -s tests -v
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install ClawHub CLI
+        shell: bash
+        run: npm install --global clawhub@0.23.3
+
+      - name: Stage ClawHub files
+        shell: bash
+        run: |
+          clawhub_skill_dir="${RUNNER_TEMP}/yinchao-ai-music"
+          mkdir -p \
+            "${clawhub_skill_dir}/references" \
+            "${clawhub_skill_dir}/scripts"
+          cp skills/yinchao-ai-music/SKILL.md "${clawhub_skill_dir}/"
+          cp skills/yinchao-ai-music/references/*.md \
+            "${clawhub_skill_dir}/references/"
+          cp skills/yinchao-ai-music/scripts/yinchao_music.py \
+            "${clawhub_skill_dir}/scripts/"
+          echo "CLAWHUB_SKILL_DIR=${clawhub_skill_dir}" >> "${GITHUB_ENV}"
+          echo "CLAWHUB_VERSION=${GITHUB_REF_NAME#v}" >> "${GITHUB_ENV}"
+
+      - name: ClawHub dry run
+        shell: bash
+        run: |
+          clawhub skill publish "${CLAWHUB_SKILL_DIR}" \
+            --slug yinchao-ai-music \
+            --name "音潮 AI 音乐创作" \
+            --version "${CLAWHUB_VERSION}" \
+            --categories creative,integrations \
+            --topics ai-music,text-to-music,lyrics-to-song,song-extension,yinchao \
+            --source-repo "${GITHUB_REPOSITORY}" \
+            --source-commit "${GITHUB_SHA}" \
+            --source-ref "${GITHUB_REF}" \
+            --source-path skills/yinchao-ai-music \
+            --dry-run \
+            --json
+
+      - name: Publish ClawHub release
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "${CLAWHUB_TOKEN}" ]]; then
+            echo "Missing GitHub Actions secret: CLAWHUB_TOKEN" >&2
+            exit 1
+          fi
+
+          export CLAWHUB_CONFIG_PATH="${RUNNER_TEMP}/clawhub-config.json"
+          clawhub login --token "${CLAWHUB_TOKEN}"
+          clawhub whoami
+          clawhub skill publish "${CLAWHUB_SKILL_DIR}" \
+            --slug yinchao-ai-music \
+            --name "音潮 AI 音乐创作" \
+            --version "${CLAWHUB_VERSION}" \
+            --categories creative,integrations \
+            --topics ai-music,text-to-music,lyrics-to-song,song-extension,yinchao \
+            --source-repo "${GITHUB_REPOSITORY}" \
+            --source-commit "${GITHUB_SHA}" \
+            --source-ref "${GITHUB_REF}" \
+            --source-path skills/yinchao-ai-music \
+            --changelog "GitHub Release ${GITHUB_REF_NAME}" \
+            --json

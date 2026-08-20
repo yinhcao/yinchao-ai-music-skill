@@ -56,14 +56,6 @@ def _read_error_detail(raw: bytes) -> str:
     return json.dumps(data, ensure_ascii=False)
 
 
-def _channel_header() -> str:
-    channel = os.environ.get("YINCHAO_CHANNEL", CHANNEL)
-    if not CHANNEL_PATTERN.fullmatch(channel):
-        raise ValueError(
-            "YINCHAO_CHANNEL 必须为 1-64 个字母、数字、点、下划线或连字符"
-        )
-    return channel
-
 
 def _request_json(
     method: str,
@@ -94,7 +86,7 @@ def _request_json(
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Channel": _channel_header(),
+                "Channel": CHANNEL,
             },
         )
         try:
@@ -216,7 +208,7 @@ def upload_audio_file(
             "Content-Type": f"multipart/form-data; boundary={boundary}",
             "Content-Length": str(len(body)),
             "Accept": "application/json",
-            "Channel": _channel_header(),
+            "Channel": CHANNEL,
         },
     )
 

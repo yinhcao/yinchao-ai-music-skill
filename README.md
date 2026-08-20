@@ -1,6 +1,7 @@
 # YinChao AI Music｜音潮 AI 音乐创作
 
 [![GitHub release](https://img.shields.io/github/v/release/yinhcao/yinchao-ai-music-skill)](https://github.com/yinhcao/yinchao-ai-music-skill/releases/latest)
+[![skills.sh](https://skills.sh/b/yinhcao/yinchao-ai-music-skill)](https://skills.sh/yinhcao/yinchao-ai-music-skill)
 [![Test](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml/badge.svg)](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
