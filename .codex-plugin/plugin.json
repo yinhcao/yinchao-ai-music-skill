@@ -1,0 +1,42 @@
+{
+  "name": "yinchao-ai-music",
+  "version": "1.3.0",
+  "description": "Generate complete AI songs and BGM, turn lyrics into music, create from reference audio, and extend songs with YinChao.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "音潮涌现 AI 音乐生成器",
+    "shortDescription": "生成完整 AI 歌曲、BGM、歌词谱曲和歌曲续写",
+    "longDescription": "音潮涌现（YinChao）AI 音乐创作插件：根据文字或歌词生成可播放的完整歌曲和 BGM，支持参考音频风格创作、歌曲续写、延长与纯歌词创作。当前限时免费。",
+    "developerName": "音潮涌现（上海）智能科技有限公司",
+    "category": "Music",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://platform.yinchaoyongxian.com/",
+    "privacyPolicyURL": "https://platform.yinchaoyongxian.com/privacy.html",
+    "termsOfServiceURL": "https://platform.yinchaoyongxian.com/terms.html",
+    "composerIcon": "./skills/yinchao-ai-music/assets/yinchao-logo.png",
+    "logo": "./skills/yinchao-ai-music/assets/yinchao-logo.png",
+    "brandColor": "#515CE8",
+    "defaultPrompt": [
+      "写一首温暖的中文民谣，木吉他和轻柔男声，主题是久别重逢。",
+      "把我提供的歌词谱曲并唱成一首完整歌曲，保持歌词原文不变。",
+      "参考我提供的音频氛围创作一首新歌，但不要复刻旋律。"
+    ]
+  },
+  "author": {
+    "name": "音潮涌现（上海）智能科技有限公司",
+    "email": "customerservice@ycyx.tech"
+  },
+  "homepage": "https://platform.yinchaoyongxian.com/docs",
+  "license": "MIT",
+  "keywords": [
+    "AI music",
+    "AI song generator",
+    "text to music",
+    "lyrics to song",
+    "song extension",
+    "AI音乐生成",
+    "歌词谱曲",
+    "音潮涌现",
+    "YinChao"
+  ]
+}

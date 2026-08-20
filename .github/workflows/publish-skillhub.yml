@@ -37,14 +37,24 @@ jobs:
       - name: Install SkillHub CLI
         shell: bash
         run: |
+          SKILLHUB_KIT_VERSION="2026.8.5"
+          SKILLHUB_ARCHIVE="/tmp/skillhub-cli-${SKILLHUB_KIT_VERSION}.tar.gz"
           curl --fail --show-error --silent --location \
-            https://skillhub.cn/install/install.sh \
-            --output /tmp/install-skillhub.sh
-          bash /tmp/install-skillhub.sh --cli-only
+            "https://skillhub-1388575217.cos.ap-guangzhou.myqcloud.com/install/skillhub-cli-${SKILLHUB_KIT_VERSION}.tar.gz" \
+            --output "${SKILLHUB_ARCHIVE}"
+          echo "3bbe2ba15ada2eb7a94a2b760fead83be5f4164ab28a6c8b0944dbc539f7e236  ${SKILLHUB_ARCHIVE}" \
+            | sha256sum --check --status
+          mkdir -p /tmp/skillhub-cli
+          tar -xzf "${SKILLHUB_ARCHIVE}" -C /tmp/skillhub-cli
+          bash /tmp/skillhub-cli/cli/install.sh \
+            --cli-only \
+            --kit-version "${SKILLHUB_KIT_VERSION}" \
+            --no-self-upgrade
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
       - name: SkillHub dry run
-        run: skillhub publish skills/yinchaoyongxian-music --dry-run --json
+        shell: bash
+        run: skillhub publish skills/yinchao-ai-music --dry-run --json
 
       - name: Publish SkillHub release
         env:
@@ -55,7 +65,7 @@ jobs:
             echo "Missing GitHub Actions secret: SKILLHUB_TOKEN" >&2
             exit 1
           fi
-          skillhub publish skills/yinchaoyongxian-music \
+          skillhub publish skills/yinchao-ai-music \
             --token "${SKILLHUB_TOKEN}" \
             --host https://api.skillhub.cn \
             --changelog "GitHub Release ${GITHUB_REF_NAME}" \

@@ -1,4 +1,0 @@
-interface:
-  display_name: "音潮涌现 AI 音乐创作"
-  short_description: "限时免费：使用全新 V4.0 生成完整 AI 歌曲，也支持仿写、扩写和歌词创作"
-  default_prompt: "使用 $yinchaoyongxian-music 根据我的想法创作一首完整歌曲。"

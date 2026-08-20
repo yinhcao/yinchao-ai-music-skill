@@ -31,7 +31,7 @@ jobs:
         run: python tools/validate_skill.py
 
       - name: Compile script
-        run: python -m py_compile skills/yinchaoyongxian-music/scripts/yinchao_music.py
+        run: python -m py_compile skills/yinchao-ai-music/scripts/yinchao_music.py
 
       - name: Run tests
         run: python -m unittest discover -s tests -v

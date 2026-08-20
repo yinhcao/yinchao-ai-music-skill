@@ -4,16 +4,23 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_DIR = ROOT / "skills" / "yinchaoyongxian-music"
+SKILL_DIR = ROOT / "skills" / "yinchao-ai-music"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 OPENAI_YAML = SKILL_DIR / "agents" / "openai.yaml"
 SCRIPT = SKILL_DIR / "scripts" / "yinchao_music.py"
+PLUGIN_MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
+REFERENCE_FILES = tuple(
+    SKILL_DIR / "references" / name
+    for name in ("generation.md", "reference.md", "extension.md", "delivery.md")
+)
+LOGO = SKILL_DIR / "assets" / "yinchao-logo.png"
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[-+][0-9A-Za-z.-]+)?$")
 
 
@@ -26,8 +33,19 @@ def parse_frontmatter(text: str) -> dict[str, str]:
         raise ValueError("SKILL.md frontmatter 未正确结束") from exc
 
     values: dict[str, str] = {}
+    in_metadata = False
     for line in frontmatter.splitlines():
-        match = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*(.*?)\s*$", line)
+        if line == "metadata:":
+            in_metadata = True
+            continue
+        if line and not line.startswith((" ", "\t")):
+            in_metadata = False
+        pattern = (
+            r"^\s{2}([A-Za-z][A-Za-z0-9_-]*):\s*(.*?)\s*$"
+            if in_metadata
+            else r"^([A-Za-z][A-Za-z0-9_-]*):\s*(.*?)\s*$"
+        )
+        match = re.match(pattern, line)
         if match:
             values[match.group(1)] = match.group(2).strip("\"'")
     return values
@@ -35,7 +53,14 @@ def parse_frontmatter(text: str) -> dict[str, str]:
 
 def validate(expected_version: str | None = None) -> list[str]:
     errors: list[str] = []
-    required_files = (SKILL_MD, OPENAI_YAML, SCRIPT)
+    required_files = (
+        SKILL_MD,
+        OPENAI_YAML,
+        SCRIPT,
+        PLUGIN_MANIFEST,
+        LOGO,
+        *REFERENCE_FILES,
+    )
     for path in required_files:
         if not path.is_file():
             errors.append(f"缺少文件：{path.relative_to(ROOT)}")
@@ -81,12 +106,40 @@ def validate(expected_version: str | None = None) -> list[str]:
     if homepage and "register_channel=skillhub" not in homepage:
         errors.append("SkillHub 包内官网链接必须保留 register_channel=skillhub")
 
+    description = metadata.get("description", "")
+    for phrase in (
+        "AI 歌曲",
+        "BGM",
+        "歌词谱曲",
+        "参考音频",
+        "歌曲续写",
+        "AI music generation",
+        "lyrics-to-song",
+    ):
+        if phrase not in description:
+            errors.append(f"description 缺少检索关键词：{phrase}")
+
     openai_text = OPENAI_YAML.read_text(encoding="utf-8")
     for field in ("display_name:", "short_description:", "default_prompt:"):
         if field not in openai_text:
             errors.append(f"agents/openai.yaml 缺少 {field.rstrip(':')}")
     if name and f"${name}" not in openai_text:
         errors.append("agents/openai.yaml 的 default_prompt 必须显式引用 Skill 名称")
+    for field in ("icon_small:", "icon_large:", "brand_color:"):
+        if field not in openai_text:
+            errors.append(f"agents/openai.yaml 缺少 {field.rstrip(':')}")
+
+    try:
+        plugin = json.loads(PLUGIN_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"无法解析 .codex-plugin/plugin.json：{exc}")
+    else:
+        if plugin.get("name") != name:
+            errors.append("Plugin name 必须与 Skill name 保持一致")
+        if plugin.get("version") != version:
+            errors.append("Plugin version 必须与 Skill version 保持一致")
+        if plugin.get("skills") != "./skills/":
+            errors.append("Plugin skills 必须指向 ./skills/")
 
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     if "__pycache__/" not in gitignore or "*.py[cod]" not in gitignore:

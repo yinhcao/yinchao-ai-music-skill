@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -17,7 +18,8 @@ from urllib.request import Request, urlopen
 from uuid import uuid4
 
 
-CHANNEL = 'skillhub'
+CHANNEL = "skillhub"
+CHANNEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 DEFAULT_BASE_URL = "https://open.yinchaoyongxian.com"
 DEFAULT_LYRIC_SONG_PROMPT = "根据提供的歌词创作并演唱一首完整歌曲，不改写歌词"
 TERMINAL_STATUSES = {"done", "fail", "cancelled"}
@@ -54,6 +56,15 @@ def _read_error_detail(raw: bytes) -> str:
     return json.dumps(data, ensure_ascii=False)
 
 
+def _channel_header() -> str:
+    channel = os.environ.get("YINCHAO_CHANNEL", CHANNEL)
+    if not CHANNEL_PATTERN.fullmatch(channel):
+        raise ValueError(
+            "YINCHAO_CHANNEL 必须为 1-64 个字母、数字、点、下划线或连字符"
+        )
+    return channel
+
+
 def _request_json(
     method: str,
     path: str,
@@ -83,7 +94,7 @@ def _request_json(
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Channel": CHANNEL,
+                "Channel": _channel_header(),
             },
         )
         try:
@@ -205,7 +216,7 @@ def upload_audio_file(
             "Content-Type": f"multipart/form-data; boundary={boundary}",
             "Content-Length": str(len(body)),
             "Accept": "application/json",
-            "Channel": CHANNEL,
+            "Channel": _channel_header(),
         },
     )
 
@@ -443,6 +454,7 @@ def wait_for_task(
     progress_interval: float = 3,
     progress_label: str = "歌曲生成中",
     base_url: str = DEFAULT_BASE_URL,
+    expected_count: int | None = None,
 ) -> dict[str, Any]:
     task_id = str(task.get("id") or "")
     if not task_id:
@@ -458,7 +470,8 @@ def wait_for_task(
         while time.monotonic() < deadline:
             now = time.monotonic()
             statuses = _task_statuses(latest)
-            if statuses and set(statuses) <= TERMINAL_STATUSES:
+            has_all_choices = expected_count is None or len(statuses) >= expected_count
+            if statuses and has_all_choices and set(statuses) <= TERMINAL_STATUSES:
                 if set(statuses) == {"done"}:
                     _finish_progress("完成", enabled=progress)
                 else:
@@ -516,9 +529,10 @@ def _format_song_choice(
         title = str(choice.get("title") or "").strip()
         audio_url = str(choice.get("audio_url") or "").strip()
         lyric = str(choice.get("lyric") or "").strip()
+        if not audio_url:
+            return f"{prefix}生成结果无效\n原因：服务端未返回可播放的音频地址"
         lines = [f"{prefix}歌名：《{title}》" if title else f"{prefix}歌曲结果"]
-        if audio_url:
-            lines.extend(["", "试听/下载：", audio_url])
+        lines.extend(["", "试听/下载：", audio_url])
         if lyric:
             lines.extend(["", "歌词：", lyric])
         return "\n".join(lines)
@@ -580,11 +594,19 @@ def _format_song(result: dict[str, Any]) -> str:
 
 
 def _normalize_lyrics(result: dict[str, Any]) -> dict[str, Any]:
+    title = str(result.get("title") or "").strip()
+    lyric = str(result.get("lyric") or "").strip()
+    if not lyric:
+        return {
+            "ok": False,
+            "type": "lyrics",
+            "error": {"message": "服务端未返回歌词"},
+        }
     return {
         "ok": True,
         "type": "lyrics",
-        "title": str(result.get("title") or "未命名歌曲").strip(),
-        "lyric": str(result.get("lyric") or "").strip(),
+        "title": title or "未命名歌曲",
+        "lyric": lyric,
     }
 
 
@@ -615,8 +637,18 @@ def _normalize_song(result: dict[str, Any]) -> dict[str, Any]:
     for index, choice in enumerate(valid_choices, start=1):
         status = str(choice.get("status") or "unknown").strip()
         if status == "done":
+            audio_url = str(choice.get("audio_url") or "").strip()
+            if not audio_url:
+                errors.append(
+                    {
+                        "index": index,
+                        "status": "fail",
+                        "message": "服务端未返回可播放的音频地址",
+                    }
+                )
+                continue
             song = {
-                "audio_url": str(choice.get("audio_url") or "").strip(),
+                "audio_url": audio_url,
                 "lyric": str(choice.get("lyric") or "").strip(),
             }
             title = str(choice.get("title") or "").strip()
@@ -933,6 +965,7 @@ def main() -> int:
                     progress_interval=args.progress_interval,
                     progress_label=progress_label,
                     base_url=DEFAULT_BASE_URL,
+                    expected_count=args.n,
                 )
         else:
             _validate_wait_options(args)
