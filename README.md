@@ -1,15 +1,12 @@
-# YinChao AI Music Generator｜音潮涌现 AI 音乐生成器
+# YinChao AI Music｜音潮 AI 音乐创作
 
-[![Release status](https://img.shields.io/badge/status-v1.3.1%20pre--release-orange)](#发布状态)
+[![GitHub release](https://img.shields.io/github/v/release/yinhcao/yinchao-ai-music-skill)](https://github.com/yinhcao/yinchao-ai-music-skill/releases/latest)
+[![Test](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml/badge.svg)](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)为 Codex、Claude Code 和其他 Agent 提供可播放的完整 AI 歌曲与 BGM：文字生成歌曲、歌词谱曲演唱、参考音频风格创作、歌曲续写与延长，以及纯歌词创作。
 
 YinChao is an AI music generation skill for text-to-music, AI song generation, lyrics-to-song, songwriting, vocal music, reference audio creation, and song extension. It generates playable music instead of stopping at lyrics.
-
-## 发布状态
-
-> `yinchao-ai-music@1.3.1` 当前处于发布准备阶段，正在从旧名称 `yinchaoyongxian-music` 迁移。新版 SkillHub 页面和 skills.sh 详情页上线前，请使用下面的 GitHub 安装方式；旧名称下的公开版本不代表本仓库当前代码。
 
 ## 环境要求
 
@@ -20,23 +17,15 @@ YinChao is an AI music generation skill for text-to-music, AI song generation, l
 
 ## 安装
 
-### 从本地仓库安装（当前可用）
-
-在本仓库根目录运行：
+从 GitHub 安装最新公开版本：
 
 ```bash
-npx skills add . --skill yinchao-ai-music -g -y
+npx skills add yinhcao/yinchao-ai-music-skill \
+  --skill yinchao-ai-music \
+  -g -y
 ```
 
-### 从 GitHub 安装（公开发布后）
-
-GitHub 仓库 `yinhcao/yinchao-ai-music-skill` 公开并能正常访问后，运行：
-
-```bash
-npx skills add yinhcao/yinchao-ai-music-skill@yinchao-ai-music -g -y
-```
-
-新版发布到 [SkillHub](https://skillhub.cloud.tencent.com/) 后，也可以搜索“音潮涌现”“AI 音乐生成”“歌词谱曲”或“歌曲续写”安装；迁移完成前请留意 Skill 名称和版本号。
+当前维护的 Skill 名称是 `yinchao-ai-music`；`yinchaoyongxian-music` 是旧版名称。SkillHub 和 skills.sh 的公开索引可能晚于 GitHub Release 更新；如果暂时搜索不到新名称，请使用上面的 GitHub 安装命令。
 
 ## 能做什么
 
@@ -135,7 +124,7 @@ songwriting  music-generation  codex-skill  agent-skills  yinchao
 
 建议在 GitHub、Skills CLI/skills.sh、SkillHub 与 [OpenAI 通用插件目录](https://developers.openai.com/plugins/build/plugins)使用同一个名称 `yinchao-ai-music`、同一组中英文关键词和相同品牌图标。该插件目录由 ChatGPT 和 Codex 共享；准备好公开资料后，按照[官方提交说明](https://developers.openai.com/plugins/deploy/submission)单独提交，仓库中的 `.codex-plugin/plugin.json` 不等同于已经发布。
 
-README 顶部的标准安装命令应保持可复制；公开发布并产生首次安装后，用典型查询检查索引：
+README 顶部的标准安装命令应保持可复制；发布后，用典型查询检查 skills.sh 索引：
 
 ```bash
 npx skills find "AI music"
@@ -144,18 +133,18 @@ npx skills find "lyrics to song"
 npx skills find "歌词谱曲"
 ```
 
-发布版本：
+后续版本发布：
 
-1. 创建并绑定公开 GitHub 仓库，确认 README 中的仓库地址能够访问。
-2. 更新 `SKILL.md` 的 `metadata.version` 与 `.codex-plugin/plugin.json` 中的同一个语义化版本号。
-3. 运行离线校验、单元测试和 SkillHub `--dry-run`。
-4. 合并到 `main` 后创建相同版本的 Git Tag，例如 `v1.3.1`。
-5. 推送 Tag；GitHub Actions 会测试、发布到 SkillHub，并创建 GitHub Release。
-6. 确认 GitHub、SkillHub 与 skills.sh 新页面可访问后，移除顶部的 pre-release 状态，恢复 CI、SkillHub 和 skills.sh 徽章，并更新为各平台的直接详情页。
+1. 更新 `SKILL.md` 的 `metadata.version` 与 `.codex-plugin/plugin.json` 中的同一个语义化版本号。
+2. 运行离线校验、单元测试和 SkillHub `--dry-run`。
+3. 合并到 `main` 后创建相同版本的 Git Tag。
+4. 推送 Tag；GitHub Actions 会测试、发布到 SkillHub，并创建 GitHub Release。
+5. 确认 GitHub Release、SkillHub 版本和公开索引状态。
 
 ```bash
-git tag -a v1.3.1 -m "v1.3.1"
-git push origin v1.3.1
+VERSION="1.3.2"
+git tag -a "v${VERSION}" -m "v${VERSION}"
+git push origin "v${VERSION}"
 ```
 
 自动发布前，需要在 GitHub Actions secrets 中配置 `SKILLHUB_TOKEN`。不要将 Token 写入工作流文件。

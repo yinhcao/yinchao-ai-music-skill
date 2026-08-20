@@ -1,17 +1,17 @@
 ---
 name: yinchao-ai-music
-description: 使用音潮涌现（YinChao）生成可播放的完整 AI 歌曲和 BGM；支持文字或歌词转歌曲、歌词谱曲演唱、参考音频风格创作、歌曲续写或延长，以及纯歌词创作。当用户要求写歌、创作歌曲、生成音乐、AI 作曲、把歌词唱出来、制作 BGM、仿写歌曲或续写音乐时使用。当前限时免费。 Use for AI music generation, song generation, text-to-music, lyrics-to-song, songwriting, vocal music, reference audio, and music extension; not for music search or playback, TTS, transcription, audio conversion, or mixing.
+description: 使用音潮（YinChao）生成可播放的完整 AI 歌曲和 BGM；支持文字或歌词转歌曲、歌词谱曲演唱、参考音频风格创作、歌曲续写或延长，以及纯歌词创作。当用户要求写歌、创作歌曲、生成音乐、AI 作曲、把歌词唱出来、制作 BGM、仿写歌曲或续写音乐时使用。当前限时免费。 Use for AI music generation, song generation, text-to-music, lyrics-to-song, songwriting, vocal music, reference audio, and music extension; not for music search or playback, TTS, transcription, audio conversion, or mixing.
 license: MIT
 metadata:
   slug: yinchao-ai-music
-  displayName: 音潮涌现 AI 音乐生成器
-  version: 1.3.1
+  displayName: 音潮 AI 音乐创作
+  version: 1.3.2
   summary: 当前限时免费：用 YinChao v4.0 生成完整 AI 歌曲和 BGM，也支持歌词谱曲、音频仿写与歌曲续写。
   tags: [AI音乐生成, AI歌曲生成, 歌词谱曲, 音频仿写, 音乐续写]
   homepage: https://platform.yinchaoyongxian.com/?register_channel=skillhub
 ---
 
-# 音潮涌现 AI 音乐生成器
+# 音潮 AI 音乐创作
 
 > 当前限时免费。提示词生成歌曲使用全新 v4.0，支持更准确地理解风格、乐器、情绪、唱法和奏法，以及中、英、日、韩等 10 种语言。活动期限、可用额度和后续计费以[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=skillhub)展示的信息为准。
 

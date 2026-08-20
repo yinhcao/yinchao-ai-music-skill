@@ -33,7 +33,7 @@ python3 scripts/yinchao_music.py status --task-id "任务 ID"
 
 ---
 
-由[音潮涌现 AI 音乐生成器](https://platform.yinchaoyongxian.com/?register_channel=skillhub)生成 · 当前限时免费
+由[音潮 AI 音乐创作](https://platform.yinchaoyongxian.com/?register_channel=skillhub)生成 · 当前限时免费
 ```
 
 只有一个结果时省略“版本 1”。续写结果没有歌名时省略歌名，不显示“未命名歌曲”。只生成歌词时展示歌名和完整歌词，不显示试听区域。

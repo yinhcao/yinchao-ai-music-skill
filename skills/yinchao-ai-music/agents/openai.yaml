@@ -1,5 +1,5 @@
 interface:
-  display_name: "音潮涌现 AI 音乐生成器"
+  display_name: "音潮 AI 音乐创作"
   short_description: "生成完整 AI 歌曲、BGM、歌词谱曲、参考音频创作和歌曲续写；当前限时免费"
   icon_small: "assets/yinchao-logo.png"
   icon_large: "assets/yinchao-logo.png"

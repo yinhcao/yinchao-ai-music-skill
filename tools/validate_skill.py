@@ -21,6 +21,7 @@ REFERENCE_FILES = tuple(
     for name in ("generation.md", "reference.md", "extension.md", "delivery.md")
 )
 LOGO = SKILL_DIR / "assets" / "yinchao-logo.png"
+DISPLAY_NAME = "音潮 AI 音乐创作"
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[-+][0-9A-Za-z.-]+)?$")
 
 
@@ -90,6 +91,8 @@ def validate(expected_version: str | None = None) -> list[str]:
         errors.append(f"Skill 目录名 {SKILL_DIR.name!r} 必须与 name {name!r} 一致")
     if name and metadata.get("slug") != name:
         errors.append("当前仓库约定 slug 与 name 保持一致")
+    if metadata.get("displayName") != DISPLAY_NAME:
+        errors.append(f"Skill 展示名必须是 {DISPLAY_NAME!r}")
 
     version = metadata.get("version", "")
     if version and not SEMVER.fullmatch(version):
@@ -125,6 +128,8 @@ def validate(expected_version: str | None = None) -> list[str]:
             errors.append(f"agents/openai.yaml 缺少 {field.rstrip(':')}")
     if name and f"${name}" not in openai_text:
         errors.append("agents/openai.yaml 的 default_prompt 必须显式引用 Skill 名称")
+    if f'display_name: "{DISPLAY_NAME}"' not in openai_text:
+        errors.append("agents/openai.yaml 的展示名与 Skill 不一致")
     for field in ("icon_small:", "icon_large:", "brand_color:"):
         if field not in openai_text:
             errors.append(f"agents/openai.yaml 缺少 {field.rstrip(':')}")
@@ -138,6 +143,8 @@ def validate(expected_version: str | None = None) -> list[str]:
             errors.append("Plugin name 必须与 Skill name 保持一致")
         if plugin.get("version") != version:
             errors.append("Plugin version 必须与 Skill version 保持一致")
+        if plugin.get("interface", {}).get("displayName") != DISPLAY_NAME:
+            errors.append("Plugin 展示名与 Skill 不一致")
         if plugin.get("skills") != "./skills/":
             errors.append("Plugin skills 必须指向 ./skills/")
 
