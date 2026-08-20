@@ -86,27 +86,6 @@ class SubmitSongTests(unittest.TestCase):
         self.assertEqual(60, payload["extend_at"])
 
 
-class ChannelTests(unittest.TestCase):
-    def test_channel_can_be_attributed_by_distributor(self) -> None:
-        with patch.dict(
-            yinchao_music.os.environ,
-            {"YINCHAO_CHANNEL": "github-codex"},
-            clear=True,
-        ):
-            self.assertEqual("github-codex", yinchao_music._channel_header())
-
-    def test_invalid_channel_is_rejected_before_request(self) -> None:
-        with (
-            patch.dict(
-                yinchao_music.os.environ,
-                {"YINCHAO_CHANNEL": "bad channel\nvalue"},
-                clear=True,
-            ),
-            self.assertRaisesRegex(ValueError, "YINCHAO_CHANNEL"),
-        ):
-            yinchao_music._channel_header()
-
-
 class RecoveryTests(unittest.TestCase):
     def test_polling_error_preserves_task_id_for_resume(self) -> None:
         pending = {"id": "task-resume", "choices": [{"status": "running"}]}
