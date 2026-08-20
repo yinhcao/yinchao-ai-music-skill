@@ -1,7 +1,7 @@
 # YinChao AI Music｜音潮 AI 音乐创作
 
 [![GitHub release](https://img.shields.io/github/v/release/yinhcao/yinchao-ai-music-skill)](https://github.com/yinhcao/yinchao-ai-music-skill/releases/latest)
-[![skills.sh](https://skills.sh/b/yinhcao/yinchao-ai-music-skill)](https://skills.sh/yinhcao/yinchao-ai-music-skill)
+[![skills.sh](https://skills.sh/b/yinhcao/yinchao-ai-music-skill)](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music)
 [![Test](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml/badge.svg)](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -9,7 +9,7 @@
 
 YinChao is an AI music generation skill for text-to-music, AI song generation, lyrics-to-song, songwriting, vocal music, reference audio creation, and song extension. It generates playable music instead of stopping at lyrics.
 
-[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
+[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
 ## 环境要求
 
