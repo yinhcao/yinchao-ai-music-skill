@@ -23,6 +23,7 @@ REFERENCE_FILES = tuple(
 LOGO = SKILL_DIR / "assets" / "yinchao-logo.png"
 DISPLAY_NAME = "音潮 AI 音乐创作"
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[-+][0-9A-Za-z.-]+)?$")
+REGISTER_CHANNEL = re.compile(r"register_channel=([a-z][a-z0-9_-]*)")
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
@@ -52,7 +53,10 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     return values
 
 
-def validate(expected_version: str | None = None) -> list[str]:
+def validate(
+    expected_version: str | None = None,
+    expected_channel: str = "github",
+) -> list[str]:
     errors: list[str] = []
     required_files = (
         SKILL_MD,
@@ -105,9 +109,19 @@ def validate(expected_version: str | None = None) -> list[str]:
     if metadata.get("license") != "MIT":
         errors.append("SKILL.md 的 license 必须与仓库 LICENSE 保持一致")
 
-    homepage = metadata.get("homepage", "")
-    if homepage and "register_channel=skillhub" not in homepage:
-        errors.append("SkillHub 包内官网链接必须保留 register_channel=skillhub")
+    channel_files = (SKILL_MD, *REFERENCE_FILES)
+    channels: list[tuple[Path, str]] = []
+    for path in channel_files:
+        for channel in REGISTER_CHANNEL.findall(path.read_text(encoding="utf-8")):
+            channels.append((path, channel))
+    if not channels:
+        errors.append("Skill 中至少需要一个 register_channel 归因链接")
+    for path, channel in channels:
+        if channel != expected_channel:
+            errors.append(
+                f"{path.relative_to(ROOT)} 中的 register_channel={channel} "
+                f"必须是 register_channel={expected_channel}"
+            )
 
     description = metadata.get("description", "")
     for phrase in (
@@ -158,9 +172,14 @@ def validate(expected_version: str | None = None) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--expected-version", help="校验 Git Tag 与 Skill 版本一致")
+    parser.add_argument(
+        "--expected-channel",
+        default="github",
+        help="校验 Skill 中所有 register_channel，默认 github",
+    )
     args = parser.parse_args()
 
-    errors = validate(args.expected_version)
+    errors = validate(args.expected_version, args.expected_channel)
     if errors:
         for error in errors:
             print(f"[ERROR] {error}", file=sys.stderr)

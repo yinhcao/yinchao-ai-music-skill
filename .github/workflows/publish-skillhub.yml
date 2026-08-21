@@ -31,7 +31,9 @@ jobs:
       - name: Validate tag and Skill
         shell: bash
         run: |
-          python tools/validate_skill.py --expected-version "${GITHUB_REF_NAME}"
+          python tools/validate_skill.py \
+            --expected-version "${GITHUB_REF_NAME}" \
+            --expected-channel github
           python -m unittest discover -s tests -v
 
       - name: Install SkillHub CLI
@@ -56,12 +58,9 @@ jobs:
         shell: bash
         run: |
           skillhub_skill_dir="${RUNNER_TEMP}/yinchao-ai-music"
-          mkdir -p "${skillhub_skill_dir}"
-          cp skills/yinchao-ai-music/SKILL.md "${skillhub_skill_dir}/"
-          cp -R \
-            skills/yinchao-ai-music/references \
-            skills/yinchao-ai-music/scripts \
-            "${skillhub_skill_dir}/"
+          python tools/stage_skill.py \
+            --channel skillhub \
+            --output "${skillhub_skill_dir}"
           echo "SKILLHUB_SKILL_DIR=${skillhub_skill_dir}" >> "${GITHUB_ENV}"
 
       - name: SkillHub dry run

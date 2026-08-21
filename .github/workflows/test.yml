@@ -28,7 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Validate Skill
-        run: python tools/validate_skill.py
+        run: python tools/validate_skill.py --expected-channel github
 
       - name: Compile script
         run: python -m py_compile skills/yinchao-ai-music/scripts/yinchao_music.py

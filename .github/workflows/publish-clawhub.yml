@@ -30,7 +30,9 @@ jobs:
       - name: Validate tag and Skill
         shell: bash
         run: |
-          python tools/validate_skill.py --expected-version "${GITHUB_REF_NAME}"
+          python tools/validate_skill.py \
+            --expected-version "${GITHUB_REF_NAME}" \
+            --expected-channel github
           python -m unittest discover -s tests -v
 
       - name: Set up Node.js
@@ -46,14 +48,9 @@ jobs:
         shell: bash
         run: |
           clawhub_skill_dir="${RUNNER_TEMP}/yinchao-ai-music"
-          mkdir -p \
-            "${clawhub_skill_dir}/references" \
-            "${clawhub_skill_dir}/scripts"
-          cp skills/yinchao-ai-music/SKILL.md "${clawhub_skill_dir}/"
-          cp skills/yinchao-ai-music/references/*.md \
-            "${clawhub_skill_dir}/references/"
-          cp skills/yinchao-ai-music/scripts/yinchao_music.py \
-            "${clawhub_skill_dir}/scripts/"
+          python tools/stage_skill.py \
+            --channel clawhub \
+            --output "${clawhub_skill_dir}"
           echo "CLAWHUB_SKILL_DIR=${clawhub_skill_dir}" >> "${GITHUB_ENV}"
           echo "CLAWHUB_VERSION=${GITHUB_REF_NAME#v}" >> "${GITHUB_ENV}"
 

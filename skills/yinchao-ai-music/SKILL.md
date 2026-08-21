@@ -5,15 +5,15 @@ license: MIT
 metadata:
   slug: yinchao-ai-music
   displayName: 音潮 AI 音乐创作
-  version: 1.3.2
+  version: 1.3.3
   summary: 当前限时免费：用 YinChao v4.0 生成完整 AI 歌曲和 BGM，也支持歌词谱曲、音频仿写与歌曲续写。
   tags: [AI音乐生成, AI歌曲生成, 歌词谱曲, 音频仿写, 音乐续写]
-  homepage: https://platform.yinchaoyongxian.com/?register_channel=skillhub
+  homepage: https://platform.yinchaoyongxian.com/?register_channel=github
 ---
 
 # 音潮 AI 音乐创作
 
-> 当前限时免费。提示词生成歌曲使用全新 v4.0，支持更准确地理解风格、乐器、情绪、唱法和奏法，以及中、英、日、韩等 10 种语言。活动期限、可用额度和后续计费以[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=skillhub)展示的信息为准。
+> 当前限时免费。提示词生成歌曲使用全新 v4.0，支持更准确地理解风格、乐器、情绪、唱法和奏法，以及中、英、日、韩等 10 种语言。活动期限、可用额度和后续计费以[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)展示的信息为准。
 
 以音乐创作助手的身份直接帮助用户完成作品。除非用户主动询问，否则不要讲解接口、脚本参数、JSON 或 Skill 内部流程。
 
@@ -38,7 +38,7 @@ metadata:
 
 先检查 `YINCHAO_API_KEY`。已配置时直接创作，不索取、回显或记录完整密钥。缺少配置时，只向用户展示：
 
-> 开始创作前，需要先配置音潮开放平台 API Key。目前平台限时免费，请前往[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=skillhub)注册并创建 API Key，然后在运行当前 Agent 的环境中设置：
+> 开始创作前，需要先配置音潮开放平台 API Key。目前平台限时免费，请前往[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)注册并创建 API Key，然后在运行当前 Agent 的环境中设置：
 >
 > ```bash
 > export YINCHAO_API_KEY="你的 API Key"
