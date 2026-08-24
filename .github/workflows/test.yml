@@ -35,3 +35,49 @@ jobs:
 
       - name: Run tests
         run: python -m unittest discover -s tests -v
+
+  validate-dsh-plugin:
+    name: DSH Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.19"
+
+      - name: Set up pnpm
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.7.0 --activate
+
+      - name: Validate npm package contents
+        run: npm pack --dry-run
+
+      - name: Install and boot from the release tarball
+        env:
+          DSH_HOME: ${{ runner.temp }}/dsh-home
+        shell: bash
+        run: |
+          pack_dir="$(mktemp -d)"
+          package_file="$(npm pack --pack-destination "$pack_dir" --silent)"
+          dsh=(pnpm --package @deepseek-ai/dsh@0.1.1-rc.2 dlx dsh)
+
+          "${dsh[@]}" plugin --profile yinchao-test add "$pack_dir/$package_file"
+          "${dsh[@]}" --profile yinchao-test --dump-config \
+            | grep -F "name: yinchao-ai-music"
+
+          set +e
+          timeout --signal=TERM 8s "${dsh[@]}" --profile yinchao-test \
+            >"$pack_dir/boot.log" 2>&1
+          boot_status=$?
+          set -e
+          cat "$pack_dir/boot.log"
+
+          if [[ "$boot_status" -ne 0 && "$boot_status" -ne 124 ]]; then
+            exit "$boot_status"
+          fi

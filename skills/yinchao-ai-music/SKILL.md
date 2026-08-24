@@ -5,7 +5,7 @@ license: MIT
 metadata:
   slug: yinchao-ai-music
   displayName: 音潮 AI 音乐创作
-  version: 1.3.3
+  version: 1.4.0
   summary: 当前限时免费：用 YinChao v4.0 生成完整 AI 歌曲和 BGM，也支持歌词谱曲、音频仿写与歌曲续写。
   tags: [AI音乐生成, AI歌曲生成, 歌词谱曲, 音频仿写, 音乐续写]
   homepage: https://platform.yinchaoyongxian.com/?register_channel=github

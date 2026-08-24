@@ -16,6 +16,9 @@ SKILL_MD = SKILL_DIR / "SKILL.md"
 OPENAI_YAML = SKILL_DIR / "agents" / "openai.yaml"
 SCRIPT = SKILL_DIR / "scripts" / "yinchao_music.py"
 PLUGIN_MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
+DSH_PACKAGE = ROOT / "package.json"
+DSH_PATCH = ROOT / "cordis.patch.yml"
+DSH_ENTRY = ROOT / "index.mjs"
 REFERENCE_FILES = tuple(
     SKILL_DIR / "references" / name
     for name in ("generation.md", "reference.md", "extension.md", "delivery.md")
@@ -63,6 +66,9 @@ def validate(
         OPENAI_YAML,
         SCRIPT,
         PLUGIN_MANIFEST,
+        DSH_PACKAGE,
+        DSH_PATCH,
+        DSH_ENTRY,
         LOGO,
         *REFERENCE_FILES,
     )
@@ -161,6 +167,64 @@ def validate(
             errors.append("Plugin 展示名与 Skill 不一致")
         if plugin.get("skills") != "./skills/":
             errors.append("Plugin skills 必须指向 ./skills/")
+
+    try:
+        dsh_package = json.loads(DSH_PACKAGE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"无法解析 package.json：{exc}")
+    else:
+        if dsh_package.get("name") != name:
+            errors.append("DSH package name 必须与 Skill name 保持一致")
+        if dsh_package.get("version") != version:
+            errors.append("DSH package version 必须与 Skill version 保持一致")
+        if dsh_package.get("type") != "module":
+            errors.append("DSH package type 必须是 module")
+        if dsh_package.get("main") != "./index.mjs":
+            errors.append("DSH package main 必须指向 ./index.mjs")
+        if dsh_package.get("dsh", {}).get("bundle", {}).get("patch") != "./cordis.patch.yml":
+            errors.append("DSH bundle patch 必须指向 ./cordis.patch.yml")
+
+        packaged_files = set(dsh_package.get("files", ()))
+        for required in (
+            ".codex-plugin",
+            "cordis.patch.yml",
+            "index.mjs",
+            "skills/yinchao-ai-music/SKILL.md",
+            "skills/yinchao-ai-music/agents",
+            "skills/yinchao-ai-music/assets",
+            "skills/yinchao-ai-music/references",
+            "skills/yinchao-ai-music/scripts/yinchao_music.py",
+            "LICENSE",
+            "README.md",
+        ):
+            if required not in packaged_files:
+                errors.append(f"DSH package files 缺少 {required}")
+        if "skills" in packaged_files:
+            errors.append("DSH package files 不应整体打包 skills 目录，以免带入缓存文件")
+
+        scripts = dsh_package.get("scripts", {})
+        for lifecycle in ("preinstall", "install", "postinstall", "prepare"):
+            if lifecycle in scripts:
+                errors.append(f"DSH package 不应包含安装期脚本 {lifecycle}")
+
+        peers = dsh_package.get("peerDependencies", {})
+        if "@deepseek-ai/dsh-skill-filesystem" not in peers:
+            errors.append("DSH package 必须声明 dsh-skill-filesystem peerDependency")
+
+    patch_text = DSH_PATCH.read_text(encoding="utf-8")
+    if f"id: {name}" not in patch_text or f"name: {name}" not in patch_text:
+        errors.append("cordis.patch.yml 必须挂载与 Skill 同名的 DSH 插件")
+
+    entry_text = DSH_ENTRY.read_text(encoding="utf-8")
+    for required in (
+        "FileSystemSkillProvider",
+        "providerName: 'yinchao-ai-music'",
+        "includeDefaultRoots: false",
+        "bundledSkillDir: skillDir",
+        "new URL('./skills', import.meta.url)",
+    ):
+        if required not in entry_text:
+            errors.append(f"index.mjs 缺少 DSH Skill provider 配置：{required}")
 
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     if "__pycache__/" not in gitignore or "*.py[cod]" not in gitignore:

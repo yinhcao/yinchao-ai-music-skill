@@ -17,8 +17,11 @@ YinChao is an AI music generation skill for text-to-music, AI song generation, l
 - 支持 Agent Skills 的 Codex、Claude Code 或其他 Agent
 - 音潮开放平台 API Key
 - 仅在使用通用 Skills CLI 安装时需要 Node.js 与 `npx`
+- 使用 DSH Plugin 时需要 DeepSeek Harness 0.1.0-rc.6 或更高版本，以及 Node.js 22.19 或更高版本
 
 ## 安装
+
+### 通用 Agent Skill
 
 使用 Skills CLI 从 GitHub 安装：
 
@@ -33,6 +36,24 @@ npx skills add yinhcao/yinchao-ai-music-skill \
 ```bash
 npx skills update yinchao-ai-music -g
 ```
+
+### DeepSeek Harness Plugin
+
+直接从 GitHub 安装到所使用的 DSH profile：
+
+```bash
+dsh plugin --profile web add github:yinhcao/yinchao-ai-music-skill
+```
+
+将 `web` 换成实际使用的 profile 名称。安装后重启对应的 DSH 进程，并确保 `YINCHAO_API_KEY` 设置在启动 DSH 的环境中。
+
+卸载：
+
+```bash
+dsh plugin --profile web remove yinchao-ai-music
+```
+
+如果当前 DSH 已经通过 Skills CLI 或手工方式安装过同名 Skill，请先移除旧副本，避免同一个 `yinchao-ai-music` 同时来自多个 Skill provider。
 
 ## 能做什么
 
@@ -80,15 +101,27 @@ export YINCHAO_API_KEY="你的 API Key"
 
 ## 本地开发
 
-Skill 包位于 `skills/yinchao-ai-music`，仓库根目录同时提供 Codex Plugin 清单。
+Skill 包位于 `skills/yinchao-ai-music`，仓库根目录同时提供 Codex Plugin 清单和 DSH Plugin bundle。两种 Plugin 共用同一个 Skill 实现。
 
 运行离线校验和测试：
 
 ```bash
 python3 tools/validate_skill.py
 python3 -m unittest discover -s tests -v
+npm pack --dry-run
 npx skills add . --list
 ```
+
+在已安装 DSH CLI 的环境中验证本地 bundle：
+
+```bash
+pack_dir="$(mktemp -d)"
+package_file="$(npm pack --pack-destination "$pack_dir" --silent)"
+dsh plugin --profile yinchao-test add "$pack_dir/$package_file"
+dsh --profile yinchao-test --dump-config
+```
+
+这里使用发布 tarball 而不是目录软链接，使 peer dependency 的解析方式与 GitHub / npm 安装保持一致。
 
 本地调用：
 

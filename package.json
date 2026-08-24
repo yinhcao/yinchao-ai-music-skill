@@ -1,0 +1,56 @@
+{
+  "name": "yinchao-ai-music",
+  "version": "1.4.0",
+  "description": "Generate complete AI songs and BGM with YinChao, including lyrics-to-song, reference-audio creation, and song extension.",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    ".codex-plugin",
+    "cordis.patch.yml",
+    "index.mjs",
+    "skills/yinchao-ai-music/SKILL.md",
+    "skills/yinchao-ai-music/agents",
+    "skills/yinchao-ai-music/assets",
+    "skills/yinchao-ai-music/references",
+    "skills/yinchao-ai-music/scripts/yinchao_music.py",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md"
+  ],
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "agent-skills",
+    "ai-music",
+    "text-to-music",
+    "lyrics-to-song",
+    "song-extension",
+    "yinchao"
+  ],
+  "author": {
+    "name": "音潮涌现（上海）智能科技有限公司",
+    "email": "customerservice@ycyx.tech"
+  },
+  "license": "MIT",
+  "homepage": "https://platform.yinchaoyongxian.com/docs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yinhcao/yinchao-ai-music-skill.git"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-skill-filesystem": "^0.1.0-rc.6 || ^0.1.1-rc.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
