@@ -7,9 +7,9 @@
 
 当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)，让 Codex、Claude Code 和其他 Agent 生成可播放的完整歌曲与 BGM，支持文字生成音乐、歌词谱曲、参考音频创作、歌曲续写和纯歌词创作。
 
-YinChao is an AI music skill that generates playable songs and BGM from prompts, lyrics, or reference audio.
+YinChao is an AI music Agent Skill and DeepSeek Harness plugin that generates playable songs and BGM from prompts, lyrics, or reference audio.
 
-[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
+[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://awesome-dsh-plugin.com/p/yinhcao/yinchao-ai-music-skill/) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
 ## 安装
 
@@ -30,6 +30,8 @@ npx skills update yinchao-ai-music -g
 ```
 
 ### DeepSeek Harness Plugin
+
+该插件已收录于 [Awesome DSH Plugins](https://awesome-dsh-plugin.com/p/yinhcao/yinchao-ai-music-skill/)；可在详情页查看条目，也可以直接运行下面的命令安装。
 
 直接从 GitHub 安装到所使用的 DSH profile：
 
@@ -70,7 +72,7 @@ SkillHub、ClawHub、skills.sh、Codex、Claude Code 和本地脚本优先使用
 export YINCHAO_API_KEY="你的 API Key"
 ```
 
-不方便设置环境变量时，可创建当前目录的 `.env`，或用户级配置文件 `~/.config/yinchao/.env`：
+需要持久化配置时，推荐使用用户级配置文件 `~/.config/yinchao/.env`；需要按项目隔离时，也可以使用当前目录的 `.env`：
 
 ```bash
 # ~/.config/yinchao/.env
@@ -79,7 +81,7 @@ YINCHAO_API_KEY="你的 API Key"
 
 其他可选方式：用 `--env-file /path/to/.env` 指定 dotenv 文件，或用 `YINCHAO_API_KEY_FILE` 指向仅含一行原始密钥的文件。读取优先级为：环境变量 → 密钥文件 → `--env-file` → 当前目录 `.env` → 用户级 `.env`。
 
-请为密钥文件设置仅当前用户可读权限（如 `chmod 600`），且不要提交到仓库。
+请为密钥文件设置仅当前用户可读权限（如 `chmod 600`）；使用项目级 `.env` 时确认它已加入 `.gitignore`，不要把任何凭据文件提交到仓库。
 
 ### DeepSeek Harness Plugin
 

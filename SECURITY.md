@@ -15,7 +15,7 @@
 
 ## 使用者注意事项
 
-- 在 SkillHub、ClawHub、skill.sh、Codex、Claude Code 等本地 Agent 中，优先通过环境变量 `YINCHAO_API_KEY` 提供密钥；也可以使用 `YINCHAO_API_KEY_FILE`、显式 `--env-file`、当前目录 `.env` 或 `~/.config/yinchao/.env`。
+- 在 SkillHub、ClawHub、skills.sh、Codex、Claude Code 等本地 Agent 中，优先通过环境变量 `YINCHAO_API_KEY` 提供密钥；需要持久化配置时推荐使用 `~/.config/yinchao/.env`，需要按项目隔离时可使用当前目录 `.env`，也支持 `YINCHAO_API_KEY_FILE` 和显式 `--env-file`。
 - 将所有凭据文件权限设为 `0600`，只在 `YINCHAO_API_KEY_FILE` 指向的文件中存放单行原始密钥；dotenv 文件使用 `YINCHAO_API_KEY=...`。不要把密钥本身放进命令行参数。
 - Python 脚本只读取目标密钥，不会把 dotenv 的其他字段导入进程环境；已设置的进程环境变量始终覆盖文件来源。
 - 在 DeepSeek Harness 中，优先通过 `$DSH_HOME/.credentials.yaml` 的 `refs.YINCHAO_API_KEY` 提供密钥，并将文件权限设为 `0600`；启动环境和 `.env` 仅作为兼容来源。
