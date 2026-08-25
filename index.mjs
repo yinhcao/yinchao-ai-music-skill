@@ -138,11 +138,6 @@ function registerMusicTool(ctx) {
       }
       return { json: JSON.stringify(payload) }
     },
-    presentCall: ({ action }) => ({
-      card: 'generic',
-      title: `音潮 AI 音乐创作 · ${action}`,
-      kind: 'other',
-    }),
   }))
 }
 

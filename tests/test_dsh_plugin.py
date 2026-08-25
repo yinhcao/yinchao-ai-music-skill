@@ -88,6 +88,13 @@ class DshPluginTests(unittest.TestCase):
         self.assertIn("value.startsWith('--env-file=')", entry)
         self.assertIn("value.includes(resolved.value)", entry)
 
+    def test_adapter_uses_streaming_safe_generic_call_presentation(self) -> None:
+        entry = (ROOT / "index.mjs").read_text(encoding="utf-8")
+
+        # DSH may project tool/call while streamed JSON is still incomplete.
+        # Omitting presentCall avoids parsing partial arguments in api-proxy.
+        self.assertNotIn("presentCall:", entry)
+
     def test_skill_prefers_the_dsh_tool_without_exposing_the_key(self) -> None:
         skill = (
             ROOT / "skills" / "yinchao-ai-music" / "SKILL.md"

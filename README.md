@@ -9,7 +9,7 @@
 
 YinChao is an AI music skill that generates playable songs and BGM from prompts, lyrics, or reference audio.
 
-[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
+[开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
 ## 环境要求
 
@@ -140,13 +140,14 @@ npm pack --dry-run
 npx skills add . --list
 ```
 
-在已安装 DSH CLI 的环境中验证本地 bundle：
+在 DSH Web 中测试本地 Plugin：
 
 ```bash
 pack_dir="$(mktemp -d)"
 package_file="$(npm pack --pack-destination "$pack_dir" --silent)"
-dsh plugin --profile yinchao-test add "$pack_dir/$package_file"
-dsh --profile yinchao-test --dump-config
+dsh plugin --profile web add "$pack_dir/$package_file"
+dsh --profile web --dump-config
+dsh web
 ```
 
 本地调用：
