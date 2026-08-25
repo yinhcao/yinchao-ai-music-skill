@@ -11,13 +11,6 @@ YinChao is an AI music skill that generates playable songs and BGM from prompts,
 
 [开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
-## 环境要求
-
-- 基础：Python 3.10+、音潮开放平台 API Key
-- 通用 Agent Skill：支持 Agent Skills 的 Codex、Claude Code 或其他 Agent
-- Skills CLI 安装：Node.js 与 `npx`
-- DSH Plugin（仅 DSH 用户）：DeepSeek Harness 0.1.0-rc.6+、Node.js 22.19+
-
 ## 安装
 
 ### 通用 Agent Skill
