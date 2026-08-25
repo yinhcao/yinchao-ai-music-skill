@@ -36,7 +36,9 @@ metadata:
 
 ## 认证与执行
 
-先检查 `YINCHAO_API_KEY`。已配置时直接创作，不索取、回显或记录完整密钥。缺少配置时，只向用户展示：
+如果当前 Agent 提供 `yinchao_music` 工具，必须通过该工具执行，不要再用 bash 直接启动 Python。把参考文件中 Python 命令的子命令传为 `action`，后续参数逐项传为 `argv`；不要传 `--json`、`--human`、`--env-file` 或 API Key。工具会通过 DeepSeek Harness credentials 获取密钥并自动使用 JSON 输出。
+
+如果没有 `yinchao_music` 工具，直接运行脚本，不要读取或回显凭据文件。脚本依次尝试进程环境 `YINCHAO_API_KEY`、`YINCHAO_API_KEY_FILE` 指向的单行密钥文件、用户显式传入的 `--env-file`、当前执行目录 `.env` 和 `~/.config/yinchao/.env`；只在用户指定其他 dotenv 路径时传 `--env-file`。脚本报告缺少配置时，只向用户展示：
 
 > 开始创作前，需要先配置音潮开放平台 API Key。目前平台限时免费，请前往[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)注册并创建 API Key，然后在运行当前 Agent 的环境中设置：
 >
@@ -44,9 +46,11 @@ metadata:
 > export YINCHAO_API_KEY="你的 API Key"
 > ```
 >
+> 也可以在当前执行目录的 `.env` 或 `~/.config/yinchao/.env` 中写入同名配置。请将凭据文件权限设为 `0600`，且不要提交到版本库。
+>
 > 配置完成后告诉我继续即可。为了账户安全，请不要把完整 API Key 发到聊天中。
 
-从本 `SKILL.md` 所在目录执行 `python3 scripts/yinchao_music.py`。歌曲生成前简短告诉用户正在创作：普通歌曲通常约 90～120 秒，参考创作和续写通常约 90～180 秒；不要持续刷屏更新状态。
+没有专用工具时，从本 `SKILL.md` 所在目录执行 `python3 scripts/yinchao_music.py`。歌曲生成前简短告诉用户正在创作：普通歌曲通常约 90～120 秒，参考创作和续写通常约 90～180 秒；不要持续刷屏更新状态。
 
 若使用本地音频，在上传前告知用户：该文件会上传至音潮开放平台用于本次创作。用户已经主动指定该文件即视为同意本次上传，无需重复请求确认；如果文件来源或使用权不明确，先询问。
 

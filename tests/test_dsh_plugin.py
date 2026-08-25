@@ -27,6 +27,7 @@ class DshPluginTests(unittest.TestCase):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         scripts = package.get("scripts", {})
         packaged_files = set(package["files"])
+        peers = package["peerDependencies"]
 
         self.assertTrue(
             {"preinstall", "install", "postinstall", "prepare"}.isdisjoint(scripts)
@@ -35,10 +36,17 @@ class DshPluginTests(unittest.TestCase):
         self.assertIn(
             "skills/yinchao-ai-music/scripts/yinchao_music.py", packaged_files
         )
-        self.assertEqual(
-            "^0.1.0-rc.6 || ^0.1.1-rc.1",
-            package["peerDependencies"]["@deepseek-ai/dsh-skill-filesystem"],
-        )
+        for dependency in (
+            "@deepseek-ai/dsh-credentials",
+            "@deepseek-ai/dsh-skill-filesystem",
+            "@deepseek-ai/dsh-subprocess",
+            "@deepseek-ai/dsh-tools",
+        ):
+            with self.subTest(dependency=dependency):
+                self.assertEqual(
+                    "^0.1.0-rc.6 || ^0.1.1-rc.1",
+                    peers[dependency],
+                )
         self.assertEqual(
             "./cordis.patch.yml", package["dsh"]["bundle"]["patch"]
         )
@@ -51,6 +59,46 @@ class DshPluginTests(unittest.TestCase):
         self.assertNotIn("customSkillDirs", entry)
         self.assertIn("new URL('./skills', import.meta.url)", entry)
         self.assertIn("providerName: 'yinchao-ai-music'", entry)
+
+    def test_adapter_resolves_credentials_and_forwards_only_to_music_child(self) -> None:
+        entry = (ROOT / "index.mjs").read_text(encoding="utf-8")
+
+        self.assertIn("credentialRef('YINCHAO_API_KEY')", entry)
+        self.assertIn("ctx.credentials.resolve(API_KEY_REF)", entry)
+        self.assertIn("ctx.subprocess.spawn", entry)
+        self.assertIn(
+            "argv: [python, SCRIPT_PATH, action, ...argv, '--json']",
+            entry,
+        )
+        self.assertIn("YINCHAO_API_KEY: resolved.value", entry)
+        self.assertNotIn("process.env.YINCHAO_API_KEY", entry)
+        self.assertNotIn("...process.env", entry)
+
+    def test_adapter_registers_a_bounded_music_only_tool(self) -> None:
+        entry = (ROOT / "index.mjs").read_text(encoding="utf-8")
+
+        self.assertIn("name: 'yinchao_music'", entry)
+        self.assertIn(
+            "enum: ['song', 'lyrics', 'reference', 'extend', 'status']",
+            entry,
+        )
+        self.assertIn("timeoutMs: TOOL_TIMEOUT_MS", entry)
+        self.assertIn("argv.includes('--human')", entry)
+        self.assertIn("argv.includes('--json')", entry)
+        self.assertIn("value.startsWith('--env-file=')", entry)
+        self.assertIn("value.includes(resolved.value)", entry)
+
+    def test_skill_prefers_the_dsh_tool_without_exposing_the_key(self) -> None:
+        skill = (
+            ROOT / "skills" / "yinchao-ai-music" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("如果当前 Agent 提供 `yinchao_music` 工具", skill)
+        self.assertIn("不要再用 bash 直接启动 Python", skill)
+        self.assertIn(
+            "不要传 `--json`、`--human`、`--env-file` 或 API Key",
+            skill,
+        )
 
 
 if __name__ == "__main__":

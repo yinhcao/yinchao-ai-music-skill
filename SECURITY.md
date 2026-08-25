@@ -15,7 +15,11 @@
 
 ## 使用者注意事项
 
-- 仅通过环境变量 `YINCHAO_API_KEY` 提供密钥。
+- 在 SkillHub、ClawHub、skill.sh、Codex、Claude Code 等本地 Agent 中，优先通过环境变量 `YINCHAO_API_KEY` 提供密钥；也可以使用 `YINCHAO_API_KEY_FILE`、显式 `--env-file`、当前目录 `.env` 或 `~/.config/yinchao/.env`。
+- 将所有凭据文件权限设为 `0600`，只在 `YINCHAO_API_KEY_FILE` 指向的文件中存放单行原始密钥；dotenv 文件使用 `YINCHAO_API_KEY=...`。不要把密钥本身放进命令行参数。
+- Python 脚本只读取目标密钥，不会把 dotenv 的其他字段导入进程环境；已设置的进程环境变量始终覆盖文件来源。
+- 在 DeepSeek Harness 中，优先通过 `$DSH_HOME/.credentials.yaml` 的 `refs.YINCHAO_API_KEY` 提供密钥，并将文件权限设为 `0600`；启动环境和 `.env` 仅作为兼容来源。
+- DSH Plugin 在进程内解析凭据，只将密钥显式传给音潮 Python 子进程；不要把密钥放进工具参数、命令行或 `cordis.patch.yml`。
 - 不要提交 `.env` 文件、终端日志或包含密钥的截图。
 - 公开反馈前，移除任务 ID、私人音频地址和未发布歌词。
 - 使用本地参考或续写音频会将文件上传至音潮开放平台。只上传有权使用的内容，不要上传不必要的个人信息或机密录音。

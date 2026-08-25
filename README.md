@@ -5,19 +5,18 @@
 [![Test](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml/badge.svg)](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)为 Codex、Claude Code 和其他 Agent 提供可播放的完整 AI 歌曲与 BGM：文字生成歌曲、歌词谱曲演唱、参考音频风格创作、歌曲续写与延长，以及纯歌词创作。
+当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)，让 Codex、Claude Code 和其他 Agent 生成可播放的完整歌曲与 BGM，支持文字生成音乐、歌词谱曲、参考音频创作、歌曲续写和纯歌词创作。
 
-YinChao is an AI music generation skill for text-to-music, AI song generation, lyrics-to-song, songwriting, vocal music, reference audio creation, and song extension. It generates playable music instead of stopping at lyrics.
+YinChao is an AI music skill that generates playable songs and BGM from prompts, lyrics, or reference audio.
 
 [开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
 ## 环境要求
 
-- Python 3.10 或更高版本
-- 支持 Agent Skills 的 Codex、Claude Code 或其他 Agent
-- 音潮开放平台 API Key
-- 仅在使用通用 Skills CLI 安装时需要 Node.js 与 `npx`
-- 使用 DSH Plugin 时需要 DeepSeek Harness 0.1.0-rc.6 或更高版本，以及 Node.js 22.19 或更高版本
+- 基础：Python 3.10+、音潮开放平台 API Key
+- 通用 Agent Skill：支持 Agent Skills 的 Codex、Claude Code 或其他 Agent
+- Skills CLI 安装：Node.js 与 `npx`
+- DSH Plugin（仅 DSH 用户）：DeepSeek Harness 0.1.0-rc.6+、Node.js 22.19+
 
 ## 安装
 
@@ -45,7 +44,7 @@ npx skills update yinchao-ai-music -g
 dsh plugin --profile web add github:yinhcao/yinchao-ai-music-skill
 ```
 
-将 `web` 换成实际使用的 profile 名称。安装后重启对应的 DSH 进程，并确保 `YINCHAO_API_KEY` 设置在启动 DSH 的环境中。
+将 `web` 换成实际的 profile 名称。然后按下文配置 Harness credentials，并重启对应的 DSH 进程。
 
 卸载：
 
@@ -53,7 +52,7 @@ dsh plugin --profile web add github:yinhcao/yinchao-ai-music-skill
 dsh plugin --profile web remove yinchao-ai-music
 ```
 
-如果当前 DSH 已经通过 Skills CLI 或手工方式安装过同名 Skill，请先移除旧副本，避免同一个 `yinchao-ai-music` 同时来自多个 Skill provider。
+如果 DSH 已通过其他方式安装过同名 Skill，请先移除旧副本，避免重复加载。
 
 ## 能做什么
 
@@ -64,18 +63,49 @@ dsh plugin --profile web remove yinchao-ai-music
 - 仅在用户明确要求时单独创作歌名和歌词
 - 在长任务中保留任务 ID，避免中断后重复提交
 
-普通歌曲使用 YinChao v4.0。用户只说“写歌”时，Skill 默认请求生成两个版本，而不是只返回歌词；单个版本仍可能因生成失败而缺失。
+普通歌曲使用 YinChao v4.0。用户只说“写歌”时，Skill 默认生成两个版本；只有明确要求“只写歌词”时才不生成音频。
 
 ## 配置 API Key
 
-1. 前往[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)注册并创建 API Key。
-2. 在运行 Agent 的环境中设置：
+先前往[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)创建 API Key。请勿把密钥发到聊天、Issue、日志或提交记录中。
+
+### 通用 Skill
+
+SkillHub、ClawHub、skills.sh、Codex、Claude Code 和本地脚本优先使用环境变量：
 
 ```bash
 export YINCHAO_API_KEY="你的 API Key"
 ```
 
-不要把完整 API Key 发到聊天、Issue、日志或提交记录中。Skill 只从环境变量 `YINCHAO_API_KEY` 读取密钥。
+不方便设置环境变量时，可创建当前目录的 `.env`，或用户级配置文件 `~/.config/yinchao/.env`：
+
+```bash
+# ~/.config/yinchao/.env
+YINCHAO_API_KEY="你的 API Key"
+```
+
+其他可选方式：用 `--env-file /path/to/.env` 指定 dotenv 文件，或用 `YINCHAO_API_KEY_FILE` 指向仅含一行原始密钥的文件。读取优先级为：环境变量 → 密钥文件 → `--env-file` → 当前目录 `.env` → 用户级 `.env`。
+
+请为密钥文件设置仅当前用户可读权限（如 `chmod 600`），且不要提交到仓库。
+
+### DeepSeek Harness Plugin
+
+DSH Plugin 推荐使用 Harness credentials。编辑 `~/.dsh/.credentials.yaml`（设置了 `DSH_HOME` 时使用 `$DSH_HOME/.credentials.yaml`）：
+
+```yaml
+version: 1
+
+refs:
+  YINCHAO_API_KEY: "你的 API Key"
+```
+
+如果文件已存在，只需把 `YINCHAO_API_KEY` 加到现有的 `refs` 下。然后运行：
+
+```bash
+chmod 600 "${DSH_HOME:-$HOME/.dsh}/.credentials.yaml"
+```
+
+密钥由 Harness 读取并仅传给音潮子进程，修改后会在下一次操作时生效。
 
 使用本地参考音频或续写音频时，文件会上传至音潮开放平台用于本次创作。请只使用你有权使用的音频，并参阅[隐私政策](https://platform.yinchaoyongxian.com/privacy.html)与[服务条款](https://platform.yinchaoyongxian.com/terms.html)。
 
@@ -97,11 +127,9 @@ export YINCHAO_API_KEY="你的 API Key"
 把 /path/to/song.mp3 从 60 秒开始继续扩写，接下来唱这段歌词：……
 ```
 
-只有明确说“只写歌词”或“不要音频”时，Skill 才只生成歌词。
-
 ## 本地开发
 
-Skill 包位于 `skills/yinchao-ai-music`，仓库根目录同时提供 Codex Plugin 清单和 DSH Plugin bundle。两种 Plugin 共用同一个 Skill 实现。
+Skill 位于 `skills/yinchao-ai-music`。仓库根目录同时包含 Codex 和 DSH Plugin 配置，两者共用该 Skill。
 
 运行离线校验和测试：
 
@@ -120,8 +148,6 @@ package_file="$(npm pack --pack-destination "$pack_dir" --silent)"
 dsh plugin --profile yinchao-test add "$pack_dir/$package_file"
 dsh --profile yinchao-test --dump-config
 ```
-
-这里使用发布 tarball 而不是目录软链接，使 peer dependency 的解析方式与 GitHub / npm 安装保持一致。
 
 本地调用：
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -21,6 +22,152 @@ assert SPEC and SPEC.loader
 yinchao_music = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = yinchao_music
 SPEC.loader.exec_module(yinchao_music)
+
+
+class CredentialTests(unittest.TestCase):
+    def test_process_environment_has_highest_priority(self) -> None:
+        result = yinchao_music._resolve_api_key(
+            env_file="/path/that/does/not/exist",
+            environ={
+                "YINCHAO_API_KEY": "  env-secret  ",
+                "YINCHAO_API_KEY_FILE": "/also/missing",
+            },
+        )
+
+        self.assertEqual("env-secret", result)
+
+    def test_raw_api_key_file_is_supported(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            key_file = Path(temp_dir) / "yinchao.key"
+            key_file.write_text("file-secret\n", encoding="utf-8")
+
+            result = yinchao_music._resolve_api_key(
+                environ={"YINCHAO_API_KEY_FILE": str(key_file)},
+            )
+
+        self.assertEqual("file-secret", result)
+
+    def test_explicit_dotenv_supports_export_quotes_and_comments(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_file = Path(temp_dir) / "custom.env"
+            env_file.write_text(
+                "# only the target key is read\n"
+                "UNRELATED=value\n"
+                'export YINCHAO_API_KEY="dotenv-secret" # comment\n',
+                encoding="utf-8",
+            )
+
+            result = yinchao_music._resolve_api_key(
+                env_file=str(env_file),
+                environ={},
+            )
+
+        self.assertEqual("dotenv-secret", result)
+
+    def test_current_directory_dotenv_precedes_user_config(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cwd = root / "workspace"
+            home = root / "home"
+            cwd.mkdir()
+            user_config = home / ".config" / "yinchao"
+            user_config.mkdir(parents=True)
+            (cwd / ".env").write_text(
+                "YINCHAO_API_KEY=cwd-secret\n",
+                encoding="utf-8",
+            )
+            (user_config / ".env").write_text(
+                "YINCHAO_API_KEY=home-secret\n",
+                encoding="utf-8",
+            )
+
+            result = yinchao_music._resolve_api_key(
+                environ={},
+                cwd=cwd,
+                home=home,
+            )
+
+        self.assertEqual("cwd-secret", result)
+
+    def test_user_config_is_the_final_file_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            cwd = root / "workspace"
+            home = root / "home"
+            cwd.mkdir()
+            user_config = home / ".config" / "yinchao"
+            user_config.mkdir(parents=True)
+            (user_config / ".env").write_text(
+                "YINCHAO_API_KEY='home-secret'\n",
+                encoding="utf-8",
+            )
+
+            result = yinchao_music._resolve_api_key(
+                environ={},
+                cwd=cwd,
+                home=home,
+            )
+
+        self.assertEqual("home-secret", result)
+
+    def test_explicit_dotenv_without_key_is_an_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_file = Path(temp_dir) / "custom.env"
+            env_file.write_text("OTHER_KEY=value\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "缺少非空"):
+                yinchao_music._resolve_api_key(
+                    env_file=str(env_file),
+                    environ={},
+                )
+
+    def test_env_file_option_is_available_after_the_subcommand(self) -> None:
+        args = yinchao_music._build_parser().parse_args(
+            ["song", "--prompt", "测试", "--env-file", "custom.env"]
+        )
+
+        self.assertEqual("custom.env", args.env_file)
+
+    def test_main_uses_explicit_dotenv_without_mutating_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_file = Path(temp_dir) / "custom.env"
+            env_file.write_text(
+                "UNRELATED=value\nYINCHAO_API_KEY=dotenv-secret\n",
+                encoding="utf-8",
+            )
+            environ: dict[str, str] = {}
+            stdout = io.StringIO()
+            with (
+                patch.object(yinchao_music.os, "environ", environ),
+                patch.object(
+                    yinchao_music.sys,
+                    "argv",
+                    [
+                        "yinchao_music.py",
+                        "lyrics",
+                        "--prompt",
+                        "测试",
+                        "--env-file",
+                        str(env_file),
+                    ],
+                ),
+                patch.object(
+                    yinchao_music,
+                    "generate_lyrics",
+                    return_value={"title": "测试歌", "lyric": "测试歌词"},
+                ) as generate_lyrics,
+                redirect_stdout(stdout),
+            ):
+                exit_code = yinchao_music.main()
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual({}, environ)
+        generate_lyrics.assert_called_once_with(
+            "测试",
+            "dotenv-secret",
+            base_url=yinchao_music.DEFAULT_BASE_URL,
+        )
+        self.assertIn('"ok": true', stdout.getvalue())
 
 
 class SubmitSongTests(unittest.TestCase):
@@ -214,7 +361,7 @@ class OutputTests(unittest.TestCase):
     def test_missing_api_key_returns_safe_json_error(self) -> None:
         stdout = io.StringIO()
         with (
-            patch.dict(yinchao_music.os.environ, {}, clear=True),
+            patch.object(yinchao_music, "_resolve_api_key", return_value=""),
             patch.object(yinchao_music.sys, "argv", ["yinchao_music.py", "song", "--prompt", "测试"]),
             redirect_stdout(stdout),
         ):

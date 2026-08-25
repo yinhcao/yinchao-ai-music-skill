@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -18,12 +19,15 @@ from urllib.request import Request, urlopen
 from uuid import uuid4
 
 
-CHANNEL = "skillhub"
+CHANNEL = "github"
 CHANNEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 DEFAULT_BASE_URL = "https://open.yinchaoyongxian.com"
 DEFAULT_LYRIC_SONG_PROMPT = "根据提供的歌词创作并演唱一首完整歌曲，不改写歌词"
 TERMINAL_STATUSES = {"done", "fail", "cancelled"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_CREDENTIAL_FILE_BYTES = 1024 * 1024
+API_KEY_ENV = "YINCHAO_API_KEY"
+API_KEY_FILE_ENV = "YINCHAO_API_KEY_FILE"
 ALLOWED_AUDIO_TYPES = {
     ".mp3": "audio/mpeg",
     ".wav": "audio/wav",
@@ -39,6 +43,135 @@ class YinchaoAPIError(Exception):
         if self.status is None:
             return self.detail
         return f"HTTP {self.status}: {self.detail}"
+
+
+def _read_credential_file(path: Path, *, label: str) -> str:
+    path = path.expanduser()
+    try:
+        if not path.is_file():
+            raise ValueError(f"{label}不是文件：{path}")
+        if path.stat().st_size > MAX_CREDENTIAL_FILE_BYTES:
+            raise ValueError(f"{label}过大：{path}")
+        return path.read_text(encoding="utf-8-sig")
+    except ValueError:
+        raise
+    except OSError as exc:
+        raise ValueError(f"无法读取{label}：{path}（{exc}）") from None
+
+
+def _parse_dotenv_value(raw: str, *, path: Path, line_number: int) -> str:
+    value = raw.strip()
+    if not value:
+        return ""
+
+    if value[0] not in {"'", '"'}:
+        comment = re.search(r"\s+#", value)
+        return (value[: comment.start()] if comment else value).rstrip()
+
+    quote = value[0]
+    escaped = False
+    characters: list[str] = []
+    closing_index: int | None = None
+    for index, character in enumerate(value[1:], start=1):
+        if quote == '"' and escaped:
+            if character not in {'"', "\\"}:
+                characters.append("\\")
+            characters.append(character)
+            escaped = False
+            continue
+        if quote == '"' and character == "\\":
+            escaped = True
+            continue
+        if character == quote:
+            closing_index = index
+            break
+        characters.append(character)
+
+    if escaped:
+        characters.append("\\")
+    if closing_index is None:
+        raise ValueError(f"dotenv 引号未闭合：{path}:{line_number}")
+
+    trailing = value[closing_index + 1 :].strip()
+    if trailing and not trailing.startswith("#"):
+        raise ValueError(f"dotenv 值后存在无效内容：{path}:{line_number}")
+    return "".join(characters)
+
+
+def _read_dotenv_api_key(path: Path) -> str:
+    text = _read_credential_file(path, label="dotenv 文件")
+    api_key = ""
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        name, separator, raw_value = line.partition("=")
+        if name.strip() != API_KEY_ENV:
+            continue
+        if not separator:
+            raise ValueError(f"dotenv 缺少等号：{path}:{line_number}")
+        api_key = _parse_dotenv_value(
+            raw_value,
+            path=path,
+            line_number=line_number,
+        ).strip()
+    return api_key
+
+
+def _read_raw_api_key(path: Path) -> str:
+    api_key = _read_credential_file(path, label="API Key 文件").strip()
+    if not api_key:
+        raise ValueError(f"API Key 文件为空：{path.expanduser()}")
+    if "\n" in api_key or "\r" in api_key:
+        raise ValueError(
+            f"API Key 文件只能包含一行原始密钥：{path.expanduser()}"
+        )
+    return api_key
+
+
+def _resolve_api_key(
+    *,
+    env_file: str | None = None,
+    environ: Mapping[str, str] | None = None,
+    cwd: Path | None = None,
+    home: Path | None = None,
+) -> str:
+    environ = os.environ if environ is None else environ
+
+    api_key = environ.get(API_KEY_ENV, "").strip()
+    if api_key:
+        return api_key
+
+    api_key_file = environ.get(API_KEY_FILE_ENV, "").strip()
+    if api_key_file:
+        return _read_raw_api_key(Path(api_key_file))
+
+    if env_file:
+        path = Path(env_file).expanduser()
+        api_key = _read_dotenv_api_key(path)
+        if not api_key:
+            raise ValueError(f"dotenv 文件中缺少非空 {API_KEY_ENV}：{path}")
+        return api_key
+
+    cwd = Path.cwd() if cwd is None else cwd
+    home = Path.home() if home is None else home
+    candidates = (cwd / ".env", home / ".config" / "yinchao" / ".env")
+    visited: set[Path] = set()
+    for path in candidates:
+        path = path.expanduser()
+        try:
+            identity = path.resolve()
+        except OSError:
+            identity = path.absolute()
+        if identity in visited or not path.exists():
+            continue
+        visited.add(identity)
+        api_key = _read_dotenv_api_key(path)
+        if api_key:
+            return api_key
+    return ""
 
 
 def _read_error_detail(raw: bytes) -> str:
@@ -710,6 +843,29 @@ def _error_payload(command: str, message: str) -> dict[str, Any]:
     }
 
 
+def _print_cli_error(args: argparse.Namespace, message: str) -> None:
+    if args.human:
+        print(f"错误：{message}", file=sys.stderr)
+        return
+    print(
+        json.dumps(
+            _error_payload(args.command, message),
+            ensure_ascii=False,
+        )
+    )
+
+
+def _add_credential_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--env-file",
+        metavar="PATH",
+        help=(
+            "显式读取指定 dotenv 文件中的 YINCHAO_API_KEY；"
+            "已设置的进程环境变量始终优先"
+        ),
+    )
+
+
 def _add_output_options(parser: argparse.ArgumentParser) -> None:
     output = parser.add_mutually_exclusive_group()
     output.add_argument(
@@ -795,6 +951,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     lyrics = subparsers.add_parser("lyrics", help="根据提示词同步生成歌名与歌词")
     lyrics.add_argument("--prompt", required=True, help="歌曲主题、风格、情绪等描述")
+    _add_credential_options(lyrics)
     _add_output_options(lyrics)
 
     song = subparsers.add_parser("song", help="根据提示词或自定义歌词生成完整歌曲")
@@ -811,6 +968,7 @@ def _build_parser() -> argparse.ArgumentParser:
     song.add_argument(
         "--n", type=int, choices=(1, 2), default=2, help="生成数量，默认 2"
     )
+    _add_credential_options(song)
     _add_wait_options(song, allow_no_wait=True)
 
     reference = subparsers.add_parser(
@@ -842,6 +1000,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=2,
         help="生成数量，默认 2",
     )
+    _add_credential_options(reference)
     _add_wait_options(reference, allow_no_wait=True)
 
     extend = subparsers.add_parser(
@@ -866,10 +1025,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=2,
         help="生成数量，默认 2",
     )
+    _add_credential_options(extend)
     _add_wait_options(extend, allow_no_wait=True)
 
     status = subparsers.add_parser("status", help="继续查询已经提交的歌曲任务")
     status.add_argument("--task-id", required=True, help="歌曲生成任务 ID")
+    _add_credential_options(status)
     _add_wait_options(status)
     return parser
 
@@ -877,21 +1038,18 @@ def _build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
-    api_key = os.environ.get("YINCHAO_API_KEY", "").strip()
+    try:
+        api_key = _resolve_api_key(env_file=args.env_file)
+    except ValueError as exc:
+        _print_cli_error(args, str(exc))
+        return 1
     if not api_key:
         message = (
-            "缺少 YINCHAO_API_KEY。请先在本地设置环境变量，"
+            "缺少 YINCHAO_API_KEY。请设置环境变量，或在当前目录 .env、"
+            "~/.config/yinchao/.env 中配置，"
             "不要把完整 API Key 发到对话中。"
         )
-        if args.human:
-            print(f"错误：{message}", file=sys.stderr)
-        else:
-            print(
-                json.dumps(
-                    _error_payload(args.command, message),
-                    ensure_ascii=False,
-                )
-            )
+        _print_cli_error(args, message)
         return 1
 
     try:
@@ -988,15 +1146,7 @@ def main() -> int:
                     base_url=DEFAULT_BASE_URL,
                 )
     except (ValueError, YinchaoAPIError) as exc:
-        if args.human:
-            print(f"错误：{exc}", file=sys.stderr)
-        else:
-            print(
-                json.dumps(
-                    _error_payload(args.command, str(exc)),
-                    ensure_ascii=False,
-                )
-            )
+        _print_cli_error(args, str(exc))
         return 1
 
     if args.human:

@@ -208,8 +208,14 @@ def validate(
                 errors.append(f"DSH package 不应包含安装期脚本 {lifecycle}")
 
         peers = dsh_package.get("peerDependencies", {})
-        if "@deepseek-ai/dsh-skill-filesystem" not in peers:
-            errors.append("DSH package 必须声明 dsh-skill-filesystem peerDependency")
+        for dependency in (
+            "@deepseek-ai/dsh-credentials",
+            "@deepseek-ai/dsh-skill-filesystem",
+            "@deepseek-ai/dsh-subprocess",
+            "@deepseek-ai/dsh-tools",
+        ):
+            if dependency not in peers:
+                errors.append(f"DSH package 必须声明 {dependency} peerDependency")
 
     patch_text = DSH_PATCH.read_text(encoding="utf-8")
     if f"id: {name}" not in patch_text or f"name: {name}" not in patch_text:
@@ -222,6 +228,11 @@ def validate(
         "includeDefaultRoots: false",
         "bundledSkillDir: skillDir",
         "new URL('./skills', import.meta.url)",
+        "credentialRef('YINCHAO_API_KEY')",
+        "name: 'yinchao_music'",
+        "ctx.credentials.resolve(API_KEY_REF)",
+        "ctx.subprocess.spawn",
+        "YINCHAO_API_KEY: resolved.value",
     ):
         if required not in entry_text:
             errors.append(f"index.mjs 缺少 DSH Skill provider 配置：{required}")
