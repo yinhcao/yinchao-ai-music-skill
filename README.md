@@ -11,6 +11,14 @@ YinChao is an AI music Agent Skill and DeepSeek Harness plugin that generates pl
 
 [开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://awesome-dsh-plugin.com/p/yinhcao/yinchao-ai-music-skill/) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
+## 生成效果试听
+
+无需安装即可先听[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)首页展示的生成效果：
+
+- [▶ 自然稳定的情绪表达](https://platform.yinchaoyongxian.com/musics/try_listen_01.mp3) — 听人声咬字、情绪表达与角色感
+- [▶ 贴合主题的旋律记忆点](https://platform.yinchaoyongxian.com/musics/try_listen_02.mp3) — 听主题旋律、副歌记忆点与情绪推进
+- [▶ 层次丰富的风格化编曲](https://platform.yinchaoyongxian.com/musics/try_listen_03.mp3) — 听人声、弦乐、鼓与笛等元素的编曲层次
+
 ## 安装
 
 ### 通用 Agent Skill
