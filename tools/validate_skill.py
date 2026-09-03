@@ -133,10 +133,12 @@ def validate(
     for phrase in (
         "AI 歌曲",
         "BGM",
+        "纯音乐",
         "歌词谱曲",
         "参考音频",
         "歌曲续写",
         "AI music generation",
+        "instrumental",
         "lyrics-to-song",
     ):
         if phrase not in description:

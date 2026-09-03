@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -192,6 +193,98 @@ class SubmitSongTests(unittest.TestCase):
     def test_count_only_accepts_documented_values(self) -> None:
         with self.assertRaisesRegex(ValueError, "只能是 1 或 2"):
             yinchao_music.submit_song("测试", "secret", count=3)
+
+    def test_instrumental_uses_dedicated_v4_endpoint(self) -> None:
+        with patch.object(
+            yinchao_music, "_request_json", return_value={"id": "task-instrumental"}
+        ) as request_json:
+            result = yinchao_music.submit_instrumental(
+                "轻快的原声吉他 BGM，适合咖啡馆氛围",
+                "secret",
+                count=1,
+            )
+
+        self.assertEqual({"id": "task-instrumental"}, result)
+        request_json.assert_called_once_with(
+            "POST",
+            "/api/v1/song/instrumental",
+            "secret",
+            payload={
+                "model": "v4.0",
+                "prompt": "轻快的原声吉他 BGM，适合咖啡馆氛围",
+                "n": 1,
+            },
+            base_url=yinchao_music.DEFAULT_BASE_URL,
+            timeout=60,
+        )
+
+    def test_instrumental_requires_prompt(self) -> None:
+        with self.assertRaisesRegex(ValueError, "提示词不能为空"):
+            yinchao_music.submit_instrumental("  ", "secret")
+
+    def test_instrumental_parser_defaults_to_two_results(self) -> None:
+        args = yinchao_music._build_parser().parse_args(
+            ["instrumental", "--prompt", "宁静的钢琴曲"]
+        )
+
+        self.assertEqual("instrumental", args.command)
+        self.assertEqual(2, args.n)
+
+    def test_main_submits_and_waits_for_instrumental(self) -> None:
+        submitted = {"id": "task-instrumental", "choices": []}
+        completed = {
+            "id": "task-instrumental",
+            "choices": [
+                {
+                    "status": "done",
+                    "audio_url": "https://example.com/instrumental.mp3",
+                }
+            ],
+        }
+        stdout = io.StringIO()
+        with (
+            patch.object(yinchao_music, "_resolve_api_key", return_value="secret"),
+            patch.object(
+                yinchao_music.sys,
+                "argv",
+                [
+                    "yinchao_music.py",
+                    "instrumental",
+                    "--prompt",
+                    "宁静的钢琴曲",
+                    "--n",
+                    "1",
+                    "--quiet",
+                ],
+            ),
+            patch.object(
+                yinchao_music,
+                "submit_instrumental",
+                return_value=submitted,
+            ) as submit_instrumental,
+            patch.object(
+                yinchao_music,
+                "wait_for_task",
+                return_value=completed,
+            ) as wait_for_task,
+            redirect_stdout(stdout),
+        ):
+            exit_code = yinchao_music.main()
+
+        self.assertEqual(0, exit_code)
+        submit_instrumental.assert_called_once_with(
+            "宁静的钢琴曲",
+            "secret",
+            count=1,
+            base_url=yinchao_music.DEFAULT_BASE_URL,
+        )
+        self.assertEqual(1, wait_for_task.call_args.kwargs["expected_count"])
+        payload = json.loads(stdout.getvalue())
+        self.assertTrue(payload["ok"])
+        self.assertEqual(
+            "https://example.com/instrumental.mp3",
+            payload["songs"][0]["audio_url"],
+        )
 
     def test_reference_payload_uses_reference_mode(self) -> None:
         source = {

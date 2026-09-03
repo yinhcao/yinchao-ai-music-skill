@@ -45,13 +45,13 @@ function registerMusicTool(ctx) {
   ctx.tools.register(defineTool({
     name: 'yinchao_music',
     description:
-      '通过音潮开放平台生成歌曲、歌词、参考音频作品或歌曲续写。'
+      '通过音潮开放平台生成歌曲、纯音乐、歌词、参考音频作品或歌曲续写。'
       + 'API Key 由 DeepSeek Harness 凭据系统提供，绝不能放入工具参数。',
     parameters: {
       action: {
         type: 'string',
         required: true,
-        enum: ['song', 'lyrics', 'reference', 'extend', 'status'],
+        enum: ['song', 'instrumental', 'lyrics', 'reference', 'extend', 'status'],
         description: '要执行的音潮操作。',
       },
       argv: {

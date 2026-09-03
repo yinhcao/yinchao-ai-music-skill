@@ -5,9 +5,9 @@
 [![Test](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml/badge.svg)](https://github.com/yinhcao/yinchao-ai-music-skill/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-当前限时免费。通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)，让 Codex、Claude Code 和其他 Agent 生成可播放的完整歌曲与 BGM，支持文字生成音乐、歌词谱曲、参考音频创作、歌曲续写和纯歌词创作。
+通过[音潮开放平台](https://platform.yinchaoyongxian.com/?register_channel=github)，让 Codex、Claude Code 和其他 Agent 生成可播放的完整歌曲、纯音乐与 BGM，支持文字生成音乐、歌词谱曲、参考音频创作、歌曲续写和纯歌词创作。
 
-YinChao is an AI music Agent Skill and DeepSeek Harness plugin that generates playable songs and BGM from prompts, lyrics, or reference audio.
+YinChao is an AI music Agent Skill and DeepSeek Harness plugin that generates playable songs, instrumentals, and BGM from prompts, lyrics, or reference audio.
 
 [开放平台](https://platform.yinchaoyongxian.com/?register_channel=github) · [API 文档](https://platform.yinchaoyongxian.com/docs?register_channel=github) · [SkillHub](https://skillhub.cloud.tencent.com/skills/user_025493eb/yinchao-ai-music) · [ClawHub](https://clawhub.ai/joeydqyuan/skills/yinchao-ai-music) · [skills.sh](https://www.skills.sh/yinhcao/yinchao-ai-music-skill/yinchao-ai-music) · [Awesome DSH Plugins](https://awesome-dsh-plugin.com/p/yinhcao/yinchao-ai-music-skill/) · [版本记录](https://github.com/yinhcao/yinchao-ai-music-skill/releases)
 
@@ -59,14 +59,15 @@ dsh plugin --profile web remove yinchao-ai-music
 
 ## 能做什么
 
-- 根据主题、曲风、情绪、乐器和人声要求生成完整歌曲或 BGM
+- 根据主题、曲风、情绪、乐器和人声要求生成完整歌曲
+- 根据风格、情绪、主题或使用场景生成无人声的纯音乐或 BGM
 - 把已有歌词谱曲并演唱，默认保留原文
 - 参考 MP3、WAV、公开音频地址或音潮歌曲 ID 创作新歌
 - 从歌曲结尾或指定时间点继续创作和延长音乐
 - 仅在用户明确要求时单独创作歌名和歌词
 - 在长任务中保留任务 ID，避免中断后重复提交
 
-普通歌曲使用 YinChao v4.0。用户只说“写歌”时，Skill 默认生成两个版本；只有明确要求“只写歌词”时才不生成音频。
+普通歌曲和纯音乐使用 YinChao v4.0。用户只说“写歌”时，Skill 默认生成两个完整歌曲版本；要求“纯音乐”“BGM”“无人声”或“伴奏”时改用纯音乐生成；只有明确要求“只写歌词”时才不生成音频。
 
 ## 配置 API Key
 
@@ -123,6 +124,10 @@ chmod 600 "${DSH_HOME:-$HOME/.dsh}/.credentials.yaml"
 ```
 
 ```text
+做一段轻快的原声吉他 BGM，温暖、松弛，适合咖啡馆使用，不要人声。
+```
+
+```text
 参考 /path/to/reference.mp3 的律动和氛围创作一首新歌，但不要复刻旋律。
 ```
 
@@ -160,7 +165,14 @@ python3 skills/yinchao-ai-music/scripts/yinchao_music.py song \
   --prompt "温暖的中文民谣，木吉他，轻柔男声"
 ```
 
-脚本默认输出适合 Agent 和工作流消费的精简 JSON；添加 `--human` 可输出歌名、试听地址和歌词。
+生成纯音乐：
+
+```bash
+python3 skills/yinchao-ai-music/scripts/yinchao_music.py instrumental \
+  --prompt "轻快的原声吉他 BGM，适合咖啡馆氛围"
+```
+
+脚本默认输出适合 Agent 和工作流消费的精简 JSON；添加 `--human` 可输出歌名、试听地址和可用的歌词。
 
 ## 安全与许可
 

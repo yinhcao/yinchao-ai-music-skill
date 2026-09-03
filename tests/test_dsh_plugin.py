@@ -79,7 +79,7 @@ class DshPluginTests(unittest.TestCase):
 
         self.assertIn("name: 'yinchao_music'", entry)
         self.assertIn(
-            "enum: ['song', 'lyrics', 'reference', 'extend', 'status']",
+            "enum: ['song', 'instrumental', 'lyrics', 'reference', 'extend', 'status']",
             entry,
         )
         self.assertIn("timeoutMs: TOOL_TIMEOUT_MS", entry)

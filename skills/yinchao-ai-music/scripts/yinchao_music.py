@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""调用音潮开放平台生成歌词，或生成、仿写、扩写歌曲。"""
+"""调用音潮开放平台生成歌词、歌曲或纯音乐，也可仿写、扩写歌曲。"""
 
 from __future__ import annotations
 
@@ -449,6 +449,28 @@ def submit_song(
             "task_type": "normal",
             "prompt": prompt,
             "lyric": lyric,
+            "n": count,
+        },
+        base_url=base_url,
+        timeout=60,
+    )
+
+
+def submit_instrumental(
+    prompt: str,
+    api_key: str,
+    *,
+    count: int = 2,
+    base_url: str = DEFAULT_BASE_URL,
+) -> dict[str, Any]:
+    _validate_count(count)
+    return _request_json(
+        "POST",
+        "/api/v1/song/instrumental",
+        api_key,
+        payload={
+            "model": "v4.0",
+            "prompt": _validate_prompt(prompt, max_length=1000),
             "n": count,
         },
         base_url=base_url,
@@ -945,7 +967,7 @@ def _validate_wait_options(args: argparse.Namespace) -> None:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="通过音潮开放平台生成、仿写或扩写歌曲，也可单独生成歌词"
+        description="通过音潮开放平台生成歌曲、纯音乐或歌词，也可仿写、扩写歌曲"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -970,6 +992,21 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     _add_credential_options(song)
     _add_wait_options(song, allow_no_wait=True)
+
+    instrumental = subparsers.add_parser(
+        "instrumental",
+        help="根据提示词生成纯音乐或 BGM",
+    )
+    instrumental.add_argument(
+        "--prompt",
+        required=True,
+        help="纯音乐的风格、情绪、主题或使用场景，最大 1000 字符",
+    )
+    instrumental.add_argument(
+        "--n", type=int, choices=(1, 2), default=2, help="生成数量，默认 2"
+    )
+    _add_credential_options(instrumental)
+    _add_wait_options(instrumental, allow_no_wait=True)
 
     reference = subparsers.add_parser(
         "reference",
@@ -1059,7 +1096,7 @@ def main() -> int:
                 api_key,
                 base_url=DEFAULT_BASE_URL,
             )
-        elif args.command in {"song", "reference", "extend"}:
+        elif args.command in {"song", "instrumental", "reference", "extend"}:
             if args.command == "song":
                 submitted = submit_song(
                     args.prompt,
@@ -1069,6 +1106,14 @@ def main() -> int:
                     base_url=DEFAULT_BASE_URL,
                 )
                 progress_label = "歌曲生成中"
+            elif args.command == "instrumental":
+                submitted = submit_instrumental(
+                    args.prompt,
+                    api_key,
+                    count=args.n,
+                    base_url=DEFAULT_BASE_URL,
+                )
+                progress_label = "纯音乐生成中"
             else:
                 audio_source = prepare_audio_source(
                     audio_file=args.audio_file,
